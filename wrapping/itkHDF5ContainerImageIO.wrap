@@ -1,0 +1,2 @@
+itk_wrap_simple_class("itk::HDF5ContainerImageIO" POINTER)
+itk_wrap_simple_class("itk::HDF5ContainerImageIOFactory" POINTER)

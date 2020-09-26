@@ -1,0 +1,3 @@
+project(ITKIOHDF5Container)
+set(ITKIOHDF5Container_LIBRARIES ITKIOHDF5Container)
+itk_module_impl()
