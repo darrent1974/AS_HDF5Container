@@ -24,17 +24,16 @@
 #include "itkTestingMacros.h"
 
 template <typename TPixel>
-int
-HDF5ContainerReadWriteTest(const char * fileName)
+int HDF5ContainerReadWriteTest(const char *fileName)
 {
   std::cout << fileName << std::endl;
   int success(EXIT_SUCCESS);
   using ImageType = typename itk::Image<TPixel, 3>;
-  typename ImageType::RegionType    imageRegion;
-  typename ImageType::SizeType      size;
-  typename ImageType::IndexType     index;
-  typename ImageType::SpacingType   spacing;
-  typename ImageType::PointType     origin;
+  typename ImageType::RegionType imageRegion;
+  typename ImageType::SizeType size;
+  typename ImageType::IndexType index;
+  typename ImageType::SpacingType spacing;
+  typename ImageType::PointType origin;
   typename ImageType::DirectionType myDirection;
   for (unsigned i = 0; i < 3; i++)
   {
@@ -46,7 +45,7 @@ HDF5ContainerReadWriteTest(const char * fileName)
   imageRegion.SetSize(size);
   imageRegion.SetIndex(index);
   typename ImageType::Pointer im =
-    itk::IOTestHelper::AllocateImageFromRegionAndSpacing<ImageType>(imageRegion, spacing);
+      itk::IOTestHelper::AllocateImageFromRegionAndSpacing<ImageType>(imageRegion, spacing);
 
   itk::Matrix<itk::SpacePrecisionType> mat;
   mat.SetIdentity();
@@ -60,8 +59,8 @@ HDF5ContainerReadWriteTest(const char * fileName)
   im->SetOrigin(origin);
   //
   // add some unique metadata
-  itk::MetaDataDictionary & metaDict(im->GetMetaDataDictionary());
-  bool                      metaDataBool(false);
+  itk::MetaDataDictionary &metaDict(im->GetMetaDataDictionary());
+  bool metaDataBool(false);
   itk::EncapsulateMetaData<bool>(metaDict, "TestBool", metaDataBool);
 
   char metaDataChar('c');
@@ -121,7 +120,7 @@ HDF5ContainerReadWriteTest(const char * fileName)
 
   //
   // fill image buffer
-  vnl_random                          randgen(12345678);
+  vnl_random randgen(12345678);
   itk::ImageRegionIterator<ImageType> it(im, im->GetLargestPossibleRegion());
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
@@ -132,12 +131,14 @@ HDF5ContainerReadWriteTest(const char * fileName)
   typename ImageType::Pointer im2;
   try
   {
-    itk::IOTestHelper::WriteImage<ImageType, itk::HDF5ImageIO>(im, std::string(fileName));
+    itk::IOTestHelper::WriteImage<ImageType, itk::HDF5ContainerImageIO>(im, std::string(fileName));
     im2 = itk::IOTestHelper::ReadImage<ImageType>(std::string(fileName));
   }
-  catch (const itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject &err)
   {
-    std::cout << "itkHDF5ImageIOTest" << std::endl << "Exception Object caught: " << std::endl << err << std::endl;
+    std::cout << "itkHDF5ImageIOTest" << std::endl
+              << "Exception Object caught: " << std::endl
+              << err << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -160,7 +161,7 @@ HDF5ContainerReadWriteTest(const char * fileName)
   }
   //
   // Check MetaData
-  itk::MetaDataDictionary & metaDict2(im2->GetMetaDataDictionary());
+  itk::MetaDataDictionary &metaDict2(im2->GetMetaDataDictionary());
 
   bool metaDataBool2(false);
 
@@ -314,8 +315,7 @@ HDF5ContainerReadWriteTest(const char * fileName)
   return success;
 }
 
-int
-HDF5ContainerReuseReadWriteTest(const char * fileName)
+int HDF5ContainerReuseReadWriteTest(const char *fileName)
 {
   int success(EXIT_SUCCESS);
 
@@ -339,8 +339,7 @@ HDF5ContainerReuseReadWriteTest(const char * fileName)
   return success;
 }
 
-int
-itkHDF5ContainerImageIOTest(int ac, char * av[])
+int itkHDF5ContainerImageIOTest(int ac, char *av[])
 {
   std::string prefix("");
   if (ac > 1)
@@ -349,7 +348,7 @@ itkHDF5ContainerImageIOTest(int ac, char * av[])
     --ac;
     itksys::SystemTools::ChangeDirectory(prefix.c_str());
   }
-  itk::ObjectFactoryBase::RegisterFactory(itk::HDF5ImageIOFactory::New());
+  itk::ObjectFactoryBase::RegisterFactory(itk::HDF5ContainerImageIOFactory::New());
 
   itk::HDF5ContainerImageIO::Pointer imageio = itk::HDF5ContainerImageIO::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(imageio, HDF5ContainerImageIO, StreamingImageIOBase);

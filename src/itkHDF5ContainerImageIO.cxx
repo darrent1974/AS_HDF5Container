@@ -368,7 +368,7 @@ namespace itk
 
   template <typename TScalar>
   void
-  HDF5ImageIO ::WriteScalar(const std::string &path, const TScalar &value)
+  HDF5ContainerImageIO ::WriteScalar(const std::string &path, const TScalar &value)
   {
     hsize_t numScalars(1);
     H5::DataSpace scalarSpace(1, &numScalars);
@@ -435,7 +435,7 @@ namespace itk
 
   template <typename TScalar>
   void
-  HDF5ImageIO ::WriteVector(const std::string &path, const std::vector<TScalar> &vec)
+  HDF5ContainerImageIO ::WriteVector(const std::string &path, const std::vector<TScalar> &vec)
   {
     hsize_t dim(vec.size());
     H5::DataSpace vecSpace(1, &dim);

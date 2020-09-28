@@ -31,7 +31,7 @@ namespace itk
  * factory.
  * \ingroup ITKIOHDF5Container
  */
-  class ITKIOHDF5_EXPORT HDF5ContainerImageIOFactory : public ObjectFactoryBase
+  class ITKIOHDF5Container_EXPORT HDF5ContainerImageIOFactory : public ObjectFactoryBase
   {
   public:
     ITK_DISALLOW_COPY_AND_ASSIGN(HDF5ContainerImageIOFactory);
