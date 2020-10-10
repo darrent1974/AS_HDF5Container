@@ -22,13 +22,19 @@
 #include "itkMetaDataObject.h"
 #include "itkMath.h"
 #include "itkTestingMacros.h"
+#include "itkNumericTraits.h"
+#include <string>
+#include <sstream>
 
 template <typename TPixel>
 int HDF5ContainerReadWriteTest(const char *fileName)
 {
   std::cout << fileName << std::endl;
+
   int success(EXIT_SUCCESS);
   using ImageType = typename itk::Image<TPixel, 3>;
+  using WriterType = itk::ImageFileWriter<ImageType>;
+
   typename ImageType::RegionType imageRegion;
   typename ImageType::SizeType size;
   typename ImageType::IndexType index;
@@ -57,9 +63,11 @@ int HDF5ContainerReadWriteTest(const char *fileName)
 
   // set origin
   im->SetOrigin(origin);
+
   //
   // add some unique metadata
   itk::MetaDataDictionary &metaDict(im->GetMetaDataDictionary());
+
   bool metaDataBool(false);
   itk::EncapsulateMetaData<bool>(metaDict, "TestBool", metaDataBool);
 
@@ -131,12 +139,30 @@ int HDF5ContainerReadWriteTest(const char *fileName)
   typename ImageType::Pointer im2;
   try
   {
-    itk::IOTestHelper::WriteImage<ImageType, itk::HDF5ContainerImageIO>(im, std::string(fileName));
-    im2 = itk::IOTestHelper::ReadImage<ImageType>(std::string(fileName));
+    // Create imageio object
+    itk::HDF5ContainerImageIO::Pointer imageio(itk::HDF5ContainerImageIO::New());
+    imageio->UseMetaDataOn();
+    imageio->DebugOn();
+
+    // Test writing image
+    typename WriterType::Pointer pWriterHDF5(WriterType::New());
+    pWriterHDF5->DebugOn();
+    pWriterHDF5->SetFileName(fileName);
+    pWriterHDF5->SetInput(im);
+    pWriterHDF5->SetImageIO(imageio);
+
+    // Turn on compression for integer types
+    pWriterHDF5->SetUseCompression(itk::NumericTraits<TPixel>::IsInteger);
+    pWriterHDF5->SetCompressionLevel(5);
+
+    pWriterHDF5->Update();
+
+    // Read it back using the helper class
+    im2 = itk::IOTestHelper::ReadImage<ImageType>(std::string(fileName), false, imageio);
   }
   catch (const itk::ExceptionObject &err)
   {
-    std::cout << "itkHDF5ImageIOTest" << std::endl
+    std::cout << "itkHDF5ContainerImageIOTest" << std::endl
               << "Exception Object caught: " << std::endl
               << err << std::endl;
     return EXIT_FAILURE;
@@ -159,6 +185,7 @@ int HDF5ContainerReadWriteTest(const char *fileName)
               << std::endl;
     return EXIT_FAILURE;
   }
+
   //
   // Check MetaData
   itk::MetaDataDictionary &metaDict2(im2->GetMetaDataDictionary());
@@ -315,30 +342,6 @@ int HDF5ContainerReadWriteTest(const char *fileName)
   return success;
 }
 
-int HDF5ContainerReuseReadWriteTest(const char *fileName)
-{
-  int success(EXIT_SUCCESS);
-
-  itk::HDF5ContainerImageIO::Pointer io = itk::HDF5ContainerImageIO::New();
-  io->SetFileName(fileName);
-
-  // Is writing first an image should produce an error?
-  // io->WriteImageInformation();
-
-  io->ReadImageInformation();
-  // Ensure there are no memory leaks
-  io->ReadImageInformation();
-
-  io->WriteImageInformation();
-  // Ensure there are no memory leaks
-  io->WriteImageInformation();
-
-  // Reading after Writing shouldn't produce an error
-  io->ReadImageInformation();
-
-  return success;
-}
-
 int itkHDF5ContainerImageIOTest(int ac, char *av[])
 {
   std::string prefix("");
@@ -359,8 +362,6 @@ int itkHDF5ContainerImageIOTest(int ac, char *av[])
   result += HDF5ContainerReadWriteTest<float>("FloatImage.hdf5");
   result += HDF5ContainerReadWriteTest<unsigned long long>("ULongLongImage.hdf5");
   result += HDF5ContainerReadWriteTest<itk::RGBPixel<unsigned char>>("RGBImage.hdf5");
-
-  result += HDF5ContainerReuseReadWriteTest("UCharImage.hdf5");
 
   return result != 0;
 }
