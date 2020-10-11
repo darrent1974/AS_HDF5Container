@@ -325,17 +325,6 @@ namespace itk
       itkExceptionMacro(<< "DataSet attribute already exists: " << name);
 
     H5::Attribute scalarAttrib = ds.createAttribute(name, scalarType, scalarSpace);
-    //
-    // HDF5 can't distinguish
-    // between bool and int datasets
-    // in a disk file. So add an attribute
-    // labeling this as a bool
-
-    //const std::string isBoolName("isBool");
-    //H5::Attribute isBool = scalarSet.createAttribute(isBoolName, scalarType, scalarSpace);
-    //bool trueVal(true);
-    //isBool.write(scalarType, &trueVal);
-    //isBool.close();
 
     bool tempVal = static_cast<bool>(value);
     scalarAttrib.write(scalarType, &tempVal);
@@ -850,7 +839,7 @@ namespace itk
           itkDebugMacro(<< "Number of inferred dimensions: " << this->GetNumberOfDimensions());
 
           // Set image dimensions (reverse order)
-          for (int i = 0; i < nDims; i++)
+          for (hsize_t i = 0; i < nDims; i++)
             this->SetDimensions(nDims - i - 1, Dims[i]);
         }
         else if (nDims > this->GetNumberOfDimensions())
@@ -1524,14 +1513,14 @@ namespace itk
       if (group.nameExists(MetaDataName))
         itkExceptionMacro(<< MetaDataName << ", already exists");
 
-      int numComponents = this->GetNumberOfComponents();
-      int numDims = this->GetNumberOfDimensions();
+      hsize_t numComponents = this->GetNumberOfComponents();
+      hsize_t numDims = this->GetNumberOfDimensions();
 
       // HDF5 dimensions listed slowest moving first, ITK are fastest
       // moving first.
       std::unique_ptr<hsize_t[]> dims(new hsize_t[numDims + (numComponents == 1 ? 0 : 1)]);
 
-      for (int i(0), j(numDims - 1); i < numDims; i++, j--)
+      for (hsize_t i(0), j(numDims - 1); i < numDims; i++, j--)
       {
         dims[j] = this->m_Dimensions[i];
       }
