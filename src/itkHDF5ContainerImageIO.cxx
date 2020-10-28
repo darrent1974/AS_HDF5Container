@@ -811,7 +811,7 @@ namespace itk
       // ITK related dataset attributes
       this->ReadDataSetAttributes(imageSet);
 
-      // Set number of dimentions based of size of the Origin
+      // Set number of dimensions based of size of the Origin
       // vector initialised above
       auto numDims = static_cast<int>(this->m_Origin.size());
       this->SetNumberOfDimensions(numDims);
