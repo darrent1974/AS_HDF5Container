@@ -5,6 +5,7 @@ data model and file format.")
 itk_module(ITKIOHDF5Container
   ENABLE_SHARED
   DEPENDS
+    ITKKWSys
     ITKIOImageBase
   PRIVATE_DEPENDS
     ITKHDF5
