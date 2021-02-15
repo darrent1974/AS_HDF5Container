@@ -31,15 +31,14 @@
 // itk namespace first suppresses
 // kwstyle error for the H5 namespace below
 namespace itk
-{
-}
+{}
 namespace H5
 {
-  class H5File;
-  class DataSpace;
-  class DataSet;
-  class Group;
-  class FileAccPropList;
+class H5File;
+class DataSpace;
+class DataSet;
+class Group;
+class FileAccPropList;
 
 } // namespace H5
 
@@ -47,7 +46,7 @@ namespace H5
 
 namespace itk
 {
-  /**
+/**
  *\class HDF5ContainerImageIO
  *
  * \author Darren Thompson
@@ -60,196 +59,243 @@ namespace itk
  *
  */
 
-  class ITKIOHDF5Container_EXPORT HDF5ContainerImageIO : public StreamingImageIOBase
+class ITKIOHDF5Container_EXPORT HDF5ContainerImageIO : public StreamingImageIOBase
+{
+public:
+  ITK_DISALLOW_COPY_AND_ASSIGN(HDF5ContainerImageIO);
+
+  /** Standard class type aliases. */
+  using Self = HDF5ContainerImageIO;
+  using Superclass = StreamingImageIOBase;
+  using Pointer = SmartPointer<Self>;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(HDF5ContainerImageIO, StreamingImageIOBase);
+
+  /** Set/Get the name of the HDF5 path data will be read/written */
+  itkSetStringMacro(Path);
+  itkGetStringMacro(Path);
+  itkSetStringMacro(DataSetName);
+  itkGetStringMacro(DataSetName);
+  itkSetMacro(Overwrite, bool);
+  itkGetMacro(Overwrite, bool);
+  itkBooleanMacro(Overwrite);
+  itkGetMacro(UseChunking, bool);
+  itkSetMacro(UseChunking, bool);
+  itkBooleanMacro(UseChunking);
+  itkGetMacro(UseMetaData, bool);
+  itkSetMacro(UseMetaData, bool);
+  itkBooleanMacro(UseMetaData);
+  itkGetMacro(UseInferredDimensions, bool);
+  itkGetMacro(UseDataSetOffset, bool);
+  itkSetMacro(UseDataSetOffset, bool);
+  itkBooleanMacro(UseDataSetOffset);
+  itkGetMacro(UseDataSetSize, bool);
+  itkSetMacro(UseDataSetSize, bool);
+  itkBooleanMacro(UseDataSetSize);
+  itkGetMacro(UseDataSetStride, bool);
+  itkSetMacro(UseDataSetStride, bool);
+  itkBooleanMacro(UseDataSetStride);
+
+  std::vector<unsigned int> &
+  GetDataSetOffset()
   {
-  public:
-    ITK_DISALLOW_COPY_AND_ASSIGN(HDF5ContainerImageIO);
+    return m_DataSetOffset;
+  }
 
-    /** Standard class type aliases. */
-    using Self = HDF5ContainerImageIO;
-    using Superclass = StreamingImageIOBase;
-    using Pointer = SmartPointer<Self>;
+  std::vector<unsigned int> &
+  GetDataSetSize()
+  {
+    return m_DataSetSize;
+  }
 
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+  std::vector<unsigned int> &
+  GetDataSetStride()
+  {
+    return m_DataSetStride;
+  }
 
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(HDF5ContainerImageIO, StreamingImageIOBase);
+  /*-------- This part of the interfaces deals with reading data. ----- */
 
-    /** Set/Get the name of the HDF5 path data will be read/written */
-    itkSetStringMacro(Path);
-    itkGetStringMacro(Path);
-    itkSetStringMacro(DataSetName);
-    itkGetStringMacro(DataSetName);
-    itkSetMacro(Overwrite, bool);
-    itkGetMacro(Overwrite, bool);
-    itkBooleanMacro(Overwrite);
-    itkGetMacro(UseChunking, bool);
-    itkSetMacro(UseChunking, bool);
-    itkBooleanMacro(UseChunking);
-    itkGetMacro(UseMetaData, bool);
-    itkSetMacro(UseMetaData, bool);
-    itkBooleanMacro(UseMetaData);
-
-    itkGetMacro(UseInferredDimensions, bool);
-
-    /*-------- This part of the interfaces deals with reading data. ----- */
-
-    /** Determine if the file can be read with this ImageIO implementation.
+  /** Determine if the file can be read with this ImageIO implementation.
    * \author Darren Thompson
    * \param FileNameToRead The name of the file to test for reading.
    * \post Sets classes ImageIOBase::m_FileName variable to be FileNameToWrite
    * \return Returns true if this ImageIO can read the file specified.
    */
-    bool CanReadFile(const char *FileNameToRead) override;
+  bool
+  CanReadFile(const char * FileNameToRead) override;
 
-    /** Set the spacing and dimension information for the set filename. */
-    void
-    ReadImageInformation() override;
+  /** Set the spacing and dimension information for the set filename. */
+  void
+  ReadImageInformation() override;
 
-    /** Reads the data from disk into the memory buffer provided. */
-    void
-    Read(void *buffer) override;
+  /** Reads the data from disk into the memory buffer provided. */
+  void
+  Read(void * buffer) override;
 
-    /*-------- This part of the interfaces deals with writing data. ----- */
+  /*-------- This part of the interfaces deals with writing data. ----- */
 
-    /** Determine if the file can be written with this ImageIO implementation.
+  /** Determine if the file can be written with this ImageIO implementation.
    * \param FileNameToWrite The name of the file to test for writing.
    * \author Darren Thompson
    * \post Sets classes ImageIOBase::m_FileName variable to be FileNameToWrite
    * \return Returns true if this ImageIO can write the file specified.
    */
-    bool
-    CanWriteFile(const char *FileNameToWrite) override;
+  bool
+  CanWriteFile(const char * FileNameToWrite) override;
 
-    /** Set the spacing and dimension information for the set filename. */
-    void
-    WriteImageInformation() override;
+  /** Set the spacing and dimension information for the set filename. */
+  void
+  WriteImageInformation() override;
 
-    /** Writes the data to disk from the memory buffer provided. Make sure
+  /** Writes the data to disk from the memory buffer provided. Make sure
    * that the IORegions has been set properly. */
-    void
-    Write(const void *buffer) override;
+  void
+  Write(const void * buffer) override;
 
-  protected:
-    HDF5ContainerImageIO();
-    ~HDF5ContainerImageIO() override;
+protected:
+  HDF5ContainerImageIO();
+  ~HDF5ContainerImageIO() override;
 
-    itkSetMacro(UseInferredDimensions, bool);
-    itkBooleanMacro(UseInferredDimensions);
+  itkSetMacro(UseInferredDimensions, bool);
+  itkBooleanMacro(UseInferredDimensions);
 
-    SizeType
-    GetHeaderSize() const override;
+  SizeType
+  GetHeaderSize() const override;
 
-    void
-    PrintSelf(std::ostream &os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  private:
-    void
-    WriteString(const std::string &path, const std::string &value);
-    void
-    WriteString(const std::string &path, const char *s);
-    void
-    WriteStringAttr(H5::DataSet &ds, const std::string &name, const std::string &value);
-    void
-    WriteStringAttr(H5::DataSet &ds, const std::string &name, const char *s);
-    std::string
-    ReadString(const std::string &path);
+private:
+  void
+  WriteString(const std::string & path, const std::string & value);
+  void
+  WriteString(const std::string & path, const char * s);
+  void
+  WriteStringAttr(H5::DataSet & ds, const std::string & name, const std::string & value);
+  void
+  WriteStringAttr(H5::DataSet & ds, const std::string & name, const char * s);
+  std::string
+  ReadString(const std::string & path);
 
-    void
-    WriteScalar(const std::string &path, const bool &value);
-    void
-    WriteScalarDataSetAttrib(H5::DataSet &ds, const std::string &name, const bool &value);
+  void
+  WriteScalar(const std::string & path, const bool & value);
+  void
+  WriteScalarDataSetAttrib(H5::DataSet & ds, const std::string & name, const bool & value);
 
-    void
-    WriteScalar(const std::string &path, const long &value);
-    void
-    WriteScalar(const std::string &path, const unsigned long &value);
-    void
-    WriteScalar(const std::string &path, const long long &value);
-    void
-    WriteScalar(const std::string &path, const unsigned long long &value);
+  void
+  WriteScalar(const std::string & path, const long & value);
+  void
+  WriteScalar(const std::string & path, const unsigned long & value);
+  void
+  WriteScalar(const std::string & path, const long long & value);
+  void
+  WriteScalar(const std::string & path, const unsigned long long & value);
 
-    template <typename TScalar>
-    void
-    WriteScalar(const std::string &path, const TScalar &value);
+  template <typename TScalar>
+  void
+  WriteScalar(const std::string & path, const TScalar & value);
 
-    template <typename TScalar>
-    TScalar
-    ReadScalar(const std::string &DataSetName);
+  template <typename TScalar>
+  TScalar
+  ReadScalar(const std::string & DataSetName);
 
-    template <typename TScalar>
-    void
-    WriteVector(const std::string &path, const std::vector<TScalar> &vec);
+  template <typename TScalar>
+  void
+  WriteVector(const std::string & path, const std::vector<TScalar> & vec);
 
-    template <typename TScalar>
-    void
-    WriteVectorDataSetAttrib(H5::DataSet &ds, const std::string &name, const std::vector<TScalar> &vec);
+  template <typename TScalar>
+  void
+  WriteVectorDataSetAttrib(H5::DataSet & ds, const std::string & name, const std::vector<TScalar> & vec);
 
-    template <typename TScalar>
-    std::vector<TScalar>
-    ReadVector(const std::string &DataSetName);
+  template <typename TScalar>
+  std::vector<TScalar>
+  ReadVector(const std::string & DataSetName);
 
-    template <typename TScalar>
-    std::vector<TScalar>
-    ReadVectorDataSetAttrib(const H5::DataSet &ds, const std::string &name);
+  template <typename TScalar>
+  std::vector<TScalar>
+  ReadVectorDataSetAttrib(const H5::DataSet & ds, const std::string & name);
 
-    void
-    WriteDirections(const std::string &path, const std::vector<std::vector<double>> &dir);
+  void
+  WriteDirections(const std::string & path, const std::vector<std::vector<double>> & dir);
 
-    std::vector<std::vector<double>>
-    ReadDirections(const std::string &path);
+  std::vector<std::vector<double>>
+  ReadDirections(const std::string & path);
 
-    template <typename TType>
-    bool
-    WriteMeta(const std::string &name, MetaDataObjectBase *metaObj);
+  template <typename TType>
+  bool
+  WriteMeta(const std::string & name, MetaDataObjectBase * metaObj);
 
-    template <typename TType>
-    bool
-    WriteMetaDataSetAttrib(H5::DataSet &ds, const std::string &name, MetaDataObjectBase *metaObj);
+  template <typename TType>
+  bool
+  WriteMetaDataSetAttrib(H5::DataSet & ds, const std::string & name, MetaDataObjectBase * metaObj);
 
-    template <typename TType>
-    bool
-    WriteMetaArray(const std::string &name, MetaDataObjectBase *metaObj);
-    template <typename TType>
-    void
-    StoreMetaData(MetaDataDictionary *metaDict,
-                  const std::string &HDFPath,
-                  const std::string &name,
-                  unsigned long numElements);
-    void
-    SetupStreaming(H5::DataSpace *imageSpace, H5::DataSpace *slabSpace);
+  template <typename TType>
+  bool
+  WriteMetaArray(const std::string & name, MetaDataObjectBase * metaObj);
+  template <typename TType>
+  void
+  StoreMetaData(MetaDataDictionary * metaDict,
+                const std::string &  HDFPath,
+                const std::string &  name,
+                unsigned long        numElements);
+  void
+  SetupStreaming(H5::DataSpace * imageSpace, H5::DataSpace * slabSpace);
 
-    void
-    CloseH5File();
+  void
+  CloseH5File();
 
-    H5::H5File *GetH5File(const H5::FileAccPropList fapl);
-    std::vector<std::string> GetPathElements(const std::string &path);
-    bool GetPathExists(const std::string &path);
-    H5::Group GetGroup();
-    H5::Group CreateGroupFromPath();
-    std::string GetDataSetPath() const;
-    H5::DataSet GetDataSet();
+  H5::H5File *
+  GetH5File(const H5::FileAccPropList fapl);
+  std::vector<std::string>
+  GetPathElements(const std::string & path);
+  bool
+  GetPathExists(const std::string & path);
+  H5::Group
+  GetGroup();
+  H5::Group
+  CreateGroupFromPath();
+  std::string
+  GetDataSetPath() const;
+  H5::DataSet
+  GetDataSet();
 
-    void WriteDataSetAttributes(H5::DataSet ds);
-    void ReadDataSetAttributes(const H5::DataSet &ds);
-    void WriteDirectionsDataSetAttributes(H5::DataSet ds, const std::string &name, const std::vector<std::vector<double>> &dir);
-    std::vector<std::vector<double>> ReadDirectionsDataSetAttributes(const H5::DataSet &ds, const std::string &name);
+  void
+  WriteDataSetAttributes(H5::DataSet ds);
+  void
+  ReadDataSetAttributes(const H5::DataSet & ds);
+  void
+  WriteDirectionsDataSetAttributes(H5::DataSet                              ds,
+                                   const std::string &                      name,
+                                   const std::vector<std::vector<double>> & dir);
+  std::vector<std::vector<double>>
+  ReadDirectionsDataSetAttributes(const H5::DataSet & ds, const std::string & name);
 
-    void WriteImageMetaData(H5::Group &group, const MetaDataDictionary &metaDict);
-    void ReadImageMetaData(MetaDataDictionary &metaDict);
+  void
+  WriteImageMetaData(H5::Group & group, const MetaDataDictionary & metaDict);
+  void
+  ReadImageMetaData(MetaDataDictionary & metaDict);
 
-    H5::H5File *m_H5File{nullptr};
+  H5::H5File * m_H5File{ nullptr };
 
-    bool m_ImageInformationWritten{false};
-    std::string m_Path{"/"};
-    std::string m_DataSetName{"/data"};
-    bool m_Overwrite{false};
-    bool m_UseChunking{true};
-    bool m_UseMetaData{false};
-
-    bool m_UseInferredDimensions{false};
-  };
+  bool                      m_ImageInformationWritten{ false };
+  std::string               m_Path{ "/" };
+  std::string               m_DataSetName{ "/data" };
+  bool                      m_Overwrite{ false };
+  bool                      m_UseChunking{ true };
+  bool                      m_UseMetaData{ false };
+  std::vector<unsigned int> m_DataSetOffset;
+  std::vector<unsigned int> m_DataSetSize;
+  std::vector<unsigned int> m_DataSetStride;
+  bool                      m_UseDataSetOffset{ false };
+  bool                      m_UseDataSetSize{ false };
+  bool                      m_UseDataSetStride{ false };
+  bool                      m_UseInferredDimensions{ false };
+};
 } // end namespace itk
 
 #endif // itkHDF5ContainerImageIO_h
