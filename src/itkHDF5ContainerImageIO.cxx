@@ -1033,7 +1033,8 @@ HDF5ContainerImageIO ::SetupStreaming(H5::DataSpace * imageSpace, H5::DataSpace 
   const int                        HDFDim(this->GetNumberOfDimensions() + (numComponents > 1 ? 1 : 0));
   const std::unique_ptr<hsize_t[]> offset(new hsize_t[HDFDim]);
   const std::unique_ptr<hsize_t[]> stride(new hsize_t[HDFDim]);
-  const std::unique_ptr<hsize_t[]> HDFSize(new hsize_t[HDFDim]);
+  const std::unique_ptr<hsize_t[]> block(new hsize_t[HDFDim]);
+  const std::unique_ptr<hsize_t[]> count(new hsize_t[HDFDim]);
   const int                        limit = regionToRead.GetImageDimension();
 
   //
@@ -1043,7 +1044,7 @@ HDF5ContainerImageIO ::SetupStreaming(H5::DataSpace * imageSpace, H5::DataSpace 
   if (numComponents > 1)
   {
     offset[HDFDim - 1] = 0;
-    HDFSize[HDFDim - 1] = numComponents;
+    count[HDFDim - 1] = numComponents;
     ++i;
   }
 
@@ -1051,19 +1052,19 @@ HDF5ContainerImageIO ::SetupStreaming(H5::DataSpace * imageSpace, H5::DataSpace 
   {
     // Set dataspace properties from user-specified or existing values
     offset[HDFDim - i - 1] = this->GetUseDataSetOffset() ? m_DataSetOffset[j] : start[j];
-    HDFSize[HDFDim - i - 1] = this->GetUseDataSetSize() ? m_DataSetSize[j] : size[j];
+    count[HDFDim - i - 1] = this->GetUseDataSetSize() ? m_DataSetSize[j] : size[j];
     stride[HDFDim - i - 1] = this->GetUseDataSetStride() ? m_DataSetStride[j] : 1;
   }
 
   while (i < HDFDim)
   {
     offset[HDFDim - i - 1] = 0;
-    HDFSize[HDFDim - i - 1] = 1;
+    count[HDFDim - i - 1] = 1;
     ++i;
   }
 
-  slabSpace->setExtentSimple(HDFDim, HDFSize.get());
-  imageSpace->selectHyperslab(H5S_SELECT_SET, HDFSize.get(), offset.get(), stride.get());
+  slabSpace->setExtentSimple(HDFDim, count.get());
+  imageSpace->selectHyperslab(H5S_SELECT_SET, count.get(), offset.get(), stride.get());
 }
 
 void

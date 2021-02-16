@@ -289,7 +289,7 @@ private:
   std::string               m_Path{ "/" };
   std::string               m_DataSetName{ "/data" };
   bool                      m_Overwrite{ false };
-  bool                      m_UseChunking{ true };
+  bool                      m_UseChunking{ false };
   bool                      m_UseMetaData{ false };
   std::vector<unsigned int> m_DataSetOffset;
   std::vector<unsigned int> m_DataSetSize;
