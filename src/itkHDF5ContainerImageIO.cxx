@@ -1731,6 +1731,10 @@ HDF5ContainerImageIO ::DataSetExists()
   {
     this->CloseH5File();
 
+    if (!itksys::SystemTools::FileExists(this->GetFileName()))
+      // File doesn't exist
+      return false;
+
     // Open file as read-only
     this->m_H5File = new H5::H5File(this->GetFileName(), H5F_ACC_RDONLY);
 
