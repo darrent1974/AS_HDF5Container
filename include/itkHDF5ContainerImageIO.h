@@ -157,6 +157,9 @@ public:
   void
   Write(const void * buffer) override;
 
+  bool
+  DataSetExists();
+
 protected:
   HDF5ContainerImageIO();
   ~HDF5ContainerImageIO() override;

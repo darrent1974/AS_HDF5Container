@@ -1724,4 +1724,33 @@ HDF5ContainerImageIO ::GetHeaderSize() const
   return 0;
 }
 
+bool
+HDF5ContainerImageIO ::DataSetExists()
+{
+  try
+  {
+    this->CloseH5File();
+
+    // Open file as read-only
+    this->m_H5File = new H5::H5File(this->GetFileName(), H5F_ACC_RDONLY);
+
+    // Check for the existence of the path
+    if (!this->GetPathExists(this->GetPath()))
+    {
+      this->CloseH5File();
+      return false;
+    }
+
+    H5::DataSet ds(this->GetDataSet());
+    this->CloseH5File();
+    return true;
+  }
+  catch (...)
+  {
+    // The dataset already exists
+    this->CloseH5File();
+    return false;
+  }
+}
+
 } // end namespace itk
