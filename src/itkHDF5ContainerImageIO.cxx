@@ -1052,6 +1052,11 @@ HDF5ContainerImageIO ::SetupStreaming(H5::DataSpace * imageSpace, H5::DataSpace 
   {
     // Set dataspace properties from user-specified or existing values
     offset[HDFDim - i - 1] = this->GetUseDataSetOffset() ? m_DataSetOffset[j] : start[j];
+
+    if (this->GetUseDataSetStride())
+      // if a non-zero offset is specified with striding, adjust offset accordingly
+      offset[HDFDim - i - 1] *= m_DataSetStride[j];
+
     count[HDFDim - i - 1] = this->GetUseDataSetSize() ? m_DataSetSize[j] : size[j];
     stride[HDFDim - i - 1] = this->GetUseDataSetStride() ? m_DataSetStride[j] : 1;
   }
