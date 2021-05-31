@@ -15,17 +15,17 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#include "itkVersion.h"
 #include "itkHDF5ContainerImageIO.h"
-#include "itkMetaDataObject.h"
 #include "itkArray.h"
+#include "itkMetaDataObject.h"
+#include "itkVersion.h"
 #include "itk_H5Cpp.h"
 
-#include <vector>
-#include <regex>
-#include <string>
 #include <algorithm>
 #include <filesystem>
+#include <regex>
+#include <string>
+#include <vector>
 
 namespace itk
 {
@@ -1052,7 +1052,8 @@ HDF5ContainerImageIO ::SetupStreaming(H5::DataSpace * imageSpace, H5::DataSpace 
     offset[HDFDim - i - 1] = this->GetUseDataSetOffset() ? m_DataSetOffset[j] : start[j];
 
     if (this->GetUseDataSetStride())
-      // if a non-zero offset is specified with striding, adjust offset accordingly
+      // if a non-zero offset is specified with striding, adjust offset
+      // accordingly
       offset[HDFDim - i - 1] *= m_DataSetStride[j];
 
     count[HDFDim - i - 1] = this->GetUseDataSetSize() ? m_DataSetSize[j] : size[j];
@@ -1174,27 +1175,20 @@ HDF5ContainerImageIO ::WriteMetaArray(const std::string & name, MetaDataObjectBa
 void
 HDF5ContainerImageIO::ResetH5File(const H5::FileAccPropList fapl)
 {
-  // Check for an existing HDF5 file, it it already exists re-open, rather
-  // than re-creating it.
-  if (!std::filesystem::exists(this->GetFileName()))
-  {
-    try
-    {
-      // Attempt to create a new file
-      this->m_H5File.reset(new H5::H5File(this->GetFileName(), H5F_ACC_TRUNC, H5::FileCreatPropList::DEFAULT, fapl));
-    }
-    catch (H5::FileIException & error)
-    {
-      itkExceptionMacro(<< error.getCDetailMsg());
-    }
-  }
-
   try
   {
-    // The file already exists, depending on the state of the ReCreate flat
-    // always create a new file or open it in read/write mode
-    this->m_H5File.reset(new H5::H5File(
-      this->GetFileName(), this->GetReCreate() ? H5F_ACC_TRUNC : H5F_ACC_RDWR, H5::FileCreatPropList::DEFAULT, fapl));
+    if (!std::filesystem::exists(this->GetFileName()))
+    {
+      // The file doesn't exist, attempt to create a new file
+      this->m_H5File.reset(new H5::H5File(this->GetFileName(), H5F_ACC_TRUNC, H5::FileCreatPropList::DEFAULT, fapl));
+    }
+    else
+    {
+      // The file already exists, depending on the state of the ReCreate flat
+      // always create a new file or open it in read/write mode
+      this->m_H5File.reset(new H5::H5File(
+        this->GetFileName(), this->GetReCreate() ? H5F_ACC_TRUNC : H5F_ACC_RDWR, H5::FileCreatPropList::DEFAULT, fapl));
+    }
   }
   catch (H5::FileIException & error)
   {
@@ -1552,7 +1546,7 @@ void
 HDF5ContainerImageIO::WriteImageInformation()
 {
   //
-  // guard so that image information
+  // guard so that image information is not done multiple times
   if (this->m_ImageInformationWritten)
   {
     return;
@@ -1566,7 +1560,8 @@ HDF5ContainerImageIO::WriteImageInformation()
 #if (H5_VERS_MAJOR > 1) || (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 10) ||                                             \
   (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 10) && (H5_VERS_RELEASE >= 2)
     // File format which is backwards compatible with HDF5 version 1.8
-    // Only HDF5 v1.10.2 has both setLibverBounds method and H5F_LIBVER_V18 constant
+    // Only HDF5 v1.10.2 has both setLibverBounds method and H5F_LIBVER_V18
+    // constant
     fapl.setLibverBounds(H5F_LIBVER_V18, H5F_LIBVER_V18);
 #elif (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 10) && (H5_VERS_RELEASE < 2)
 #  error The selected version of HDF5 library does not support setting backwards compatibility at run-time.\
@@ -1669,8 +1664,8 @@ HDF5ContainerImageIO ::Write(const void * buffer)
 
   try
   {
-    int numComponents = this->GetNumberOfComponents();
-    int numDims = this->GetNumberOfDimensions();
+    int numComponents(this->GetNumberOfComponents());
+    int numDims(this->GetNumberOfDimensions());
     // HDF5 dimensions listed slowest moving first, ITK are fastest
     // moving first.
     const std::unique_ptr<hsize_t[]> dims(new hsize_t[numDims + (numComponents == 1 ? 0 : 1)]);
@@ -1685,7 +1680,7 @@ HDF5ContainerImageIO ::Write(const void * buffer)
       numDims++;
     }
     H5::DataSpace imageSpace(numDims, dims.get());
-    H5::PredType  dataType = ComponentToPredType(this->GetComponentType());
+    H5::PredType  dataType(ComponentToPredType(this->GetComponentType()));
     H5::DataSpace dspace;
     this->SetupStreaming(&imageSpace, &dspace);
 
