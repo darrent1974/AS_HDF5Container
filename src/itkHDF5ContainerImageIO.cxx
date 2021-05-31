@@ -1171,11 +1171,9 @@ HDF5ContainerImageIO ::WriteMetaArray(const std::string & name, MetaDataObjectBa
   return true;
 }
 
-H5::H5File *
-HDF5ContainerImageIO::GetH5File(const H5::FileAccPropList fapl)
+void
+HDF5ContainerImageIO::ResetH5File(const H5::FileAccPropList fapl)
 {
-  std::unique_ptr<H5::H5File> file(nullptr);
-
   // Check for an existing HDF5 file, it it already exists re-open, rather
   // than re-creating it.
   if (!std::filesystem::exists(this->GetFileName()))
@@ -1183,9 +1181,7 @@ HDF5ContainerImageIO::GetH5File(const H5::FileAccPropList fapl)
     try
     {
       // Attempt to create a new file
-      file.reset(new H5::H5File(this->GetFileName(), H5F_ACC_TRUNC, H5::FileCreatPropList::DEFAULT, fapl));
-
-      return file.get();
+      this->m_H5File.reset(new H5::H5File(this->GetFileName(), H5F_ACC_TRUNC, H5::FileCreatPropList::DEFAULT, fapl));
     }
     catch (H5::FileIException & error)
     {
@@ -1197,10 +1193,8 @@ HDF5ContainerImageIO::GetH5File(const H5::FileAccPropList fapl)
   {
     // The file already exists, depending on the state of the ReCreate flat
     // always create a new file or open it in read/write mode
-    file.reset(new H5::H5File(
+    this->m_H5File.reset(new H5::H5File(
       this->GetFileName(), this->GetReCreate() ? H5F_ACC_TRUNC : H5F_ACC_RDWR, H5::FileCreatPropList::DEFAULT, fapl));
-
-    return file.get();
   }
   catch (H5::FileIException & error)
   {
@@ -1210,8 +1204,6 @@ HDF5ContainerImageIO::GetH5File(const H5::FileAccPropList fapl)
   {
     itkExceptionMacro(<< error.getCDetailMsg());
   }
-
-  return file.get();
 }
 
 std::vector<std::string>
@@ -1581,7 +1573,8 @@ HDF5ContainerImageIO::WriteImageInformation()
   Please use a different version of HDF5, e.g. the one bundled with ITK (by setting ITK_USE_SYSTEM_HDF5 to OFF).
 #endif
 
-    this->m_H5File.reset(this->GetH5File(fapl));
+    // Reset the HDF5 file
+    this->ResetH5File(fapl);
 
     H5::Group group(this->GetGroup());
 

@@ -218,7 +218,7 @@ private:
 
   void CloseH5File();
 
-  H5::H5File* GetH5File(const H5::FileAccPropList fapl);
+  void ResetH5File(const H5::FileAccPropList fapl);
   std::vector<std::string> GetPathElements(const std::string& path);
   bool GetPathExists(const std::string& path);
   H5::Group GetGroup();
