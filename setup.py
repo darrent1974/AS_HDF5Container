@@ -16,10 +16,10 @@ setup(
     name='itk-hdf5container',
     version='0.1.0',
     author='Darren Thompson',
-    author_email='darren.thompson@csiro.au',
+    author_email='thompsod@ansto.gov.au',
     packages=['itk'],
     package_dir={'itk': 'itk'},
-    download_url=r'https://bitbucket.csiro.au:7999/ct/hdf5container.git',
+    download_url=r'https://bitbucket.synchrotron.org.au/scm/mct/itkiohdf5container.git',
     description=r'HDF5Container',
     long_description='ITK is an open-source, cross-platform library that provides developers with an extensive suite of software tools for image analysis. Developed through extreme programming methodologies, ITK employs leading-edge algorithms for registering and segmenting multidimensional scientific images.',
     classifiers=[
@@ -45,7 +45,7 @@ setup(
     keywords='ITK InsightToolkit',
     url=r'https://itk.org/',
     install_requires=[
-        r'itk>=5.2.0'
+        r'itk>=5.2.1'
     ],
     data_files=[
         ('lib', glob('hdf5container-libs/*')),
