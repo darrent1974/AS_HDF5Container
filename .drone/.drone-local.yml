@@ -48,17 +48,17 @@ steps:
       - apk add --no-cache bash # Install various utils
       - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS"
 
-  #- name: publish-package
-  #  image: plugins/pypi
-  #  settings:
-  #    repository: https://pypi.asci.synchrotron.org.au/mct/dev/
-  #    username:
-  #      from_secret: PYPI_USERNAME
-  #    password:
-  #      from_secret: PYPI_PASSWORD
-  #    distributions:
-  #      - bdist_wheel
-  #    skip_build: true      
+  - name: publish-package
+    image: plugins/pypi
+    settings:
+      repository: https://pypi.asci.synchrotron.org.au/mct/dev/
+      username:
+        from_secret: PYPI_USERNAME
+      password:
+        from_secret: PYPI_PASSWORD
+      distributions:
+        - bdist_wheel
+      skip_build: true      
 
 services:
   - name: docker
