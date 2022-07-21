@@ -1,10 +1,14 @@
-ITK*/
-scripts/
 _skbuild/
-itkcsiroct-libs/
-wheelhouse/
-output/
-.devcontainer/
+secrets.txt
+/ITKPythonPackage
+*.tar.*
+ITK-*
+dockcross-manylinux-x64
+tools/
+oneTBB*
+local*.sh
+*.egg-info
+secrets.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
