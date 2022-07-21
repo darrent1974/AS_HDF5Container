@@ -45,9 +45,6 @@ setup(
     keywords='ITK InsightToolkit',
     url=r'https://itk.org/',
     install_requires=[
-        r'itk>=5.2.1'
-    ],
-    data_files=[
-        ('lib', glob('hdf5container-libs/*')),
+        r'itk>=5.3rc04'
     ]
     )
