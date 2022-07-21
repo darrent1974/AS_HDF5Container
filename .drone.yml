@@ -1,0 +1,155 @@
+---
+kind: pipeline
+type: kubernetes
+name: itkhdf5container-build-wheel
+
+trigger:
+  ref:
+    - refs/heads/main
+
+steps:
+  - name: download-archive
+    image: minio/mc
+    environment:
+      MINIO_HOST: https://s3-api.asci.synchrotron.org.au
+      MINIO_USERNAME:
+        from_secret: MINIO_USERNAME
+      MINIO_PASSWORD:
+        from_secret: MINIO_PASSWORD
+      MINIO_BUCKET: beamline-mct
+      ITK_PACKAGE_VERSION: 5.3rc04
+      ARCHIVE: ITKPythonBuilds-linux.tar.zst
+    commands:
+      - mc alias set minio $MINIO_HOST $MINIO_USERNAME $MINIO_PASSWORD
+      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-linux-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonBuilds-linux.tar.zst
+
+  - name: setup-itkpythonpackage
+    image: alpine
+    environment:
+      ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
+      ITK_PACKAGE_VERSION: 5.3rc04
+      PYTHON_VERSIONS: cp39
+      WHEEL_VERSION: .mct
+      ARCHIVE: ITKPythonBuilds-linux.tar.zst
+    commands:
+      - apk add --no-cache git sed zstd tar
+      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
+      - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
+      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-$PYTHON_VERSIONS*
+      - ln -s ITKPythonPackage/oneTBB-prefix
+      - cp .drone/CMakeLists.txt ITKPythonPackage
+      - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION+$WHEEL_VERSION'" ITKPythonPackage/itkVersion.py
+
+  - name: build-wheel
+    image: docker:dind
+    environment:
+      PYTHON_VERSIONS: cp39
+    volumes:
+      - name: dockersock
+        path: /var/run
+    commands:
+      - sleep 5 # give docker enough time to start
+      - apk add --no-cache bash # Install various utils
+      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS"
+
+  - name: publish-package
+    image: plugins/pypi
+    settings:
+      repository: https://pypi.asci.synchrotron.org.au/mct/dev/
+      username:
+        from_secret: PYPI_USERNAME
+      password:
+        from_secret: PYPI_PASSWORD
+      distributions:
+        - bdist_wheel
+      skip_build: true
+
+  - name: notify-package-upload
+    image: alpine
+    when:
+      status: [success, failure]
+    environment:
+      ROCKET_CI_CHANNEL:
+        from_secret: rocketCIChannel
+      PYPI_SERVER:
+        from_secret: pypiServer
+    commands:
+      - export FORMAT_MSG=$(printf _"$DRONE_COMMIT_MESSAGE"_ | sed ':a;N;$!ba;s/\n/ \\\n /g')
+      - |
+        head -c -1 << EOF > .template.json
+        {
+          "channel": "$ROCKET_CI_CHANNEL",
+          "text": "Build ${DRONE_BUILD_NUMBER} of **${DRONE_REPO,,} (${DRONE_BRANCH})** is a [{{build.status}}](${DRONE_BUILD_LINK}) {{#success build.status}} :tada: {{else}} :exclamation: {{/success}}",
+          "attachments": [
+            {
+              "author_name": "${DRONE_COMMIT_AUTHOR_NAME}",
+              "fields": [
+              {
+                "short": false,
+                "title": "",
+                "value": "$FORMAT_MSG"
+              },
+              {
+                "short": false,
+                "title": "",
+                "value": "{{#success build.status}} Uploaded to the [pypi]($PYPI_SERVER/ADD_DEV_INDEX_HERE/${DRONE_REPO_NAME,,}/latest) repository. \n The [Coverage Report]($S3_API_SERVER/cicd/artifacts/${DRONE_REPO,,}/${DRONE_BUILD_NUMBER}/coverage/index.html), [Pytest Report]($S3_API_SERVER/cicd/artifacts/${DRONE_REPO,,}/${DRONE_BUILD_NUMBER}/testing/index.html) and [Sphinx Documentation]($S3_API_SERVER/sphinx-docs/${DRONE_REPO,,}/main/index.html). {{else}} Please check the commit and/or infrastructure. {{/success}}"
+              }
+            ],
+            "color": "{{#success build.status}} #30b886 {{else}} #a30100 {{/success}}"
+            }
+          ]
+        }
+        EOF
+
+  - name: chat-notify
+    image: plugins/webhook
+    when:
+      status: [success, failure]
+    settings:
+      urls:
+        from_secret: rocketCIWebhook
+      content_type: application/json
+      template: file:///drone/src/.template.json
+
+services:
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+volumes:
+  - name: dockersock
+    temp: {}
+
+---
+kind: secret
+name: rocketCIWebhook
+get:
+  path: asci-cicd-prod
+  name: rocketCIWebhook
+---
+kind: secret
+name: rocketCIChannel
+get:
+  path: asci-cicd-prod
+  name: rocketCIChannel
+---
+kind: secret
+name: dockerServer
+get:
+  path: asci-cicd-prod
+  name: dockerServer
+---
+kind: secret
+name: dockerHubAccount
+get:
+  path: asci-cicd-prod
+  name: dockerHubAccount
+---
+kind: secret
+name: dockerHubPassword
+get:
+  path: asci-cicd-prod
+  name: dockerHubPassword

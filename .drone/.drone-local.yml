@@ -1,0 +1,73 @@
+---
+kind: pipeline
+type: docker
+name: itkiohdf5container-build-wheel
+
+steps:
+  - name: download-archive
+    image: minio/mc
+    environment:
+      MINIO_HOST: https://s3-api.asci.synchrotron.org.au
+      MINIO_USERNAME:
+        from_secret: MINIO_USERNAME
+      MINIO_PASSWORD:
+        from_secret: MINIO_PASSWORD
+      MINIO_BUCKET: beamline-mct
+      ITK_PACKAGE_VERSION: 5.3rc04
+      ARCHIVE: ITKPythonBuilds-linux.tar.zst
+    commands:
+      - mc alias set minio $MINIO_HOST $MINIO_USERNAME $MINIO_PASSWORD
+      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-linux-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonBuilds-linux.tar.zst
+
+  - name: setup-itkpythonpackage
+    image: alpine
+    environment:
+      ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
+      ITK_PACKAGE_VERSION: 5.3rc04
+      PYTHON_VERSIONS: cp39
+      WHEEL_VERSION: .mct
+      ARCHIVE: ITKPythonBuilds-linux.tar.zst
+    commands:
+      - apk add --no-cache git sed zstd tar
+      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
+      - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
+      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-$PYTHON_VERSIONS*
+      - ln -s ITKPythonPackage/oneTBB-prefix 
+      - cp .drone/CMakeLists.txt ITKPythonPackage
+      - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION+$WHEEL_VERSION'" ITKPythonPackage/itkVersion.py
+
+  - name: build-wheel
+    image: docker:dind
+    environment:
+      PYTHON_VERSIONS: cp39
+    volumes:
+      - name: dockersock
+        path: /var/run
+    commands:
+      - sleep 5 # give docker enough time to start
+      - apk add --no-cache bash # Install various utils
+      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS"
+
+  - name: publish-package
+    image: plugins/pypi
+    settings:
+      repository: https://pypi.asci.synchrotron.org.au/mct/dev/
+      username:
+        from_secret: PYPI_USERNAME
+      password:
+        from_secret: PYPI_PASSWORD
+      distributions:
+        - bdist_wheel
+      skip_build: true      
+
+services:
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+volumes:
+  - name: dockersock
+    temp: {}

@@ -16,7 +16,7 @@ setup(
     name='itk-hdf5container',
     version='0.1.0',
     author='Darren Thompson',
-    author_email='thompsod@ansto.gov.au',
+    author_email='darren.thompson@csiro.au',
     packages=['itk'],
     package_dir={'itk': 'itk'},
     download_url=r'https://bitbucket.synchrotron.org.au/scm/mct/itkiohdf5container.git',
@@ -45,9 +45,6 @@ setup(
     keywords='ITK InsightToolkit',
     url=r'https://itk.org/',
     install_requires=[
-        r'itk>=5.2.1'
-    ],
-    data_files=[
-        ('lib', glob('hdf5container-libs/*')),
+        r'itk>=5.3rc04'
     ]
     )
