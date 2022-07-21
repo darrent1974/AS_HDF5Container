@@ -8,7 +8,6 @@ tools/
 oneTBB*
 local*.sh
 *.egg-info
-secrets.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
