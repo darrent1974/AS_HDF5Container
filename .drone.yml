@@ -1,7 +1,7 @@
 ---
 kind: pipeline
 type: kubernetes
-name: itkhdf5container-build-wheel
+name: itkiohdf5container-build-wheel
 
 trigger:
   ref:
@@ -57,9 +57,9 @@ steps:
     settings:
       repository: https://pypi.asci.synchrotron.org.au/mct/dev/
       username:
-        from_secret: PYPI_USERNAME
+        from_secret: pypiUsername
       password:
-        from_secret: PYPI_PASSWORD
+        from_secret: pypiPassword
       distributions:
         - bdist_wheel
       skip_build: true
@@ -92,7 +92,7 @@ steps:
               {
                 "short": false,
                 "title": "",
-                "value": "{{#success build.status}} Uploaded to the [pypi]($PYPI_SERVER/ADD_DEV_INDEX_HERE/${DRONE_REPO_NAME,,}/latest) repository. \n The [Coverage Report]($S3_API_SERVER/cicd/artifacts/${DRONE_REPO,,}/${DRONE_BUILD_NUMBER}/coverage/index.html), [Pytest Report]($S3_API_SERVER/cicd/artifacts/${DRONE_REPO,,}/${DRONE_BUILD_NUMBER}/testing/index.html) and [Sphinx Documentation]($S3_API_SERVER/sphinx-docs/${DRONE_REPO,,}/main/index.html). {{else}} Please check the commit and/or infrastructure. {{/success}}"
+                "value": "{{#success build.status}} Uploaded to the [pypi]($PYPI_SERVER/ADD_DEV_INDEX_HERE/${DRONE_REPO_NAME,,}/latest) repository. {{else}} Please check the commit and/or infrastructure. {{/success}}"
               }
             ],
             "color": "{{#success build.status}} #30b886 {{else}} #a30100 {{/success}}"
@@ -137,19 +137,18 @@ get:
   name: rocketCIChannel
 ---
 kind: secret
-name: dockerServer
+name: pypiUsername
 get:
   path: asci-cicd-prod
-  name: dockerServer
+  name: pypiUsername
 ---
 kind: secret
-name: dockerHubAccount
+name: pypiPassword
 get:
   path: asci-cicd-prod
-  name: dockerHubAccount
+  name: pypiPassword
 ---
-kind: secret
-name: dockerHubPassword
-get:
-  path: asci-cicd-prod
-  name: dockerHubPassword
+kind: signature
+hmac: 275808228f4855d61a21eae8b782409272d93e35335bf23b1b0fd8dea42cddb5
+
+...
