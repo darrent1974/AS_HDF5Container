@@ -25,7 +25,7 @@
 
 #ifndef itkHDF5ContainerImageIO_h
 #define itkHDF5ContainerImageIO_h
-#include "ITKIOHDF5ContainerExport.h"
+#include "HDF5ContainerExport.h"
 #include "itkMetaDataDictionary.h"
 #include "itkMetaDataObjectBase.h"
 
@@ -50,14 +50,14 @@ namespace itk {
  * \author Darren Thompson
  * \brief Class that defines how to read HDF5 file format.
  *
- * \ingroup ITKIOHDF5Container
+ * \ingroup CSIROCT
  *
  * HDF5 paths for elements in file
  *
  *
  */
 
-class ITKIOHDF5Container_EXPORT HDF5ContainerImageIO
+class HDF5Container_EXPORT HDF5ContainerImageIO
   : public StreamingImageIOBase
 {
 public:

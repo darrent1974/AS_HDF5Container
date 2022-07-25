@@ -5,9 +5,9 @@ if(NOT ITK_SOURCE_DIR)
   include(itk-module-init.cmake)
 endif()
 
-project(ITKIOHDF5Container)
+project(HDF5Container)
 
-set(ITKIOHDF5Container_LIBRARIES ITKIOHDF5Container)
+set(HDF5Container_LIBRARIES HDF5Container)
 
 if(NOT ITK_SOURCE_DIR)
   find_package(ITK REQUIRED)

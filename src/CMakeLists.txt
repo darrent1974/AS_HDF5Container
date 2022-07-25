@@ -1,6 +1,6 @@
-set(ITKIOHDF5Container_SRCS
+set(HDF5Container_SRCS
   itkHDF5ContainerImageIOFactory.cxx
   itkHDF5ContainerImageIO.cxx
   )
 
-itk_module_add_library(ITKIOHDF5Container ${ITKIOHDF5Container_SRCS})
+itk_module_add_library(HDF5Container ${HDF5Container_SRCS})
