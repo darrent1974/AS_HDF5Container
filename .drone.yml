@@ -1,7 +1,7 @@
 ---
 kind: pipeline
 type: kubernetes
-name: itkiohdf5container-build-wheel
+name: hdf5container-build-wheel
 
 trigger:
   ref:
@@ -149,6 +149,6 @@ get:
   name: pypiPassword
 ---
 kind: signature
-hmac: 275808228f4855d61a21eae8b782409272d93e35335bf23b1b0fd8dea42cddb5
+hmac: 4da60da16a959c97d4c5e70b1a97cb44cf6f107aa5ae5b01daee40b447b4adf3
 
 ...

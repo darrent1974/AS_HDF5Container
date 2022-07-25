@@ -50,7 +50,7 @@ HDF5ContainerImageIOFactory::GetDescription() const
 
 static bool HDF5ContainerImageIOFactoryHasBeenRegistered;
 
-void ITKIOHDF5Container_EXPORT
+void HDF5Container_EXPORT
      HDF5ContainerImageIOFactoryRegister__Private()
 {
   if (!HDF5ContainerImageIOFactoryHasBeenRegistered)

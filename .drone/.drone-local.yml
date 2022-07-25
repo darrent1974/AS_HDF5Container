@@ -1,7 +1,7 @@
 ---
 kind: pipeline
 type: docker
-name: itkiohdf5container-build-wheel
+name: hdf5container-build-wheel
 
 steps:
   - name: download-archive

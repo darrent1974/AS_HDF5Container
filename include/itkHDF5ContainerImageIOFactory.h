@@ -17,7 +17,7 @@
  *=========================================================================*/
 #ifndef itkHDF5ContainerImageIOFactory_h
 #define itkHDF5ContainerImageIOFactory_h
-#include "ITKIOHDF5ContainerExport.h"
+#include "HDF5ContainerExport.h"
 
 #include "itkObjectFactoryBase.h"
 #include "itkImageIOBase.h"
@@ -29,9 +29,9 @@ namespace itk
  * \author Darren Thompson
  * \brief Create instances of HDF5ContainerImageIO objects using an object
  * factory.
- * \ingroup ITKIOHDF5Container
+ * \ingroup CSIROCT
  */
-  class ITKIOHDF5Container_EXPORT HDF5ContainerImageIOFactory : public ObjectFactoryBase
+  class HDF5Container_EXPORT HDF5ContainerImageIOFactory : public ObjectFactoryBase
   {
   public:
     ITK_DISALLOW_COPY_AND_ASSIGN(HDF5ContainerImageIOFactory);
