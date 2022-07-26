@@ -92,7 +92,7 @@ steps:
               {
                 "short": false,
                 "title": "",
-                "value": "{{#success build.status}} Uploaded to the [pypi]($PYPI_SERVER/ADD_DEV_INDEX_HERE/${DRONE_REPO_NAME,,}/latest) repository. {{else}} Please check the commit and/or infrastructure. {{/success}}"
+                "value": "{{#success build.status}} Uploaded to the [pypi]($PYPI_SERVER/mct/dev/${DRONE_REPO_NAME,,}/latest) repository. {{else}} Please check the commit and/or infrastructure. {{/success}}"
               }
             ],
             "color": "{{#success build.status}} #30b886 {{else}} #a30100 {{/success}}"
@@ -149,6 +149,6 @@ get:
   name: pypiPassword
 ---
 kind: signature
-hmac: 4da60da16a959c97d4c5e70b1a97cb44cf6f107aa5ae5b01daee40b447b4adf3
+hmac: 6a33969517b76222cebd92acf5993fce5af4ec80d70281cf7412bd6331c4c218
 
 ...
