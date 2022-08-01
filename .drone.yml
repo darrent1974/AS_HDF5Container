@@ -134,7 +134,7 @@ kind: secret
 name: rocketCIChannel
 get:
   path: asci-cicd-prod
-  name: rocketCIChannel
+  name: imgCIChannel
 ---
 kind: secret
 name: pypiUsername
