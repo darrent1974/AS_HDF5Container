@@ -14,7 +14,7 @@ except ImportError:
 
 setup(
     name='itk-hdf5container',
-    version='0.1.0',
+    version='0.1.4',
     author='Darren Thompson',
     author_email='darren.thompson@csiro.au',
     packages=['itk'],
