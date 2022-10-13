@@ -39,6 +39,9 @@ steps:
       - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/CMakeLists.txt ITKPythonPackage
       - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION+$WHEEL_VERSION'" ITKPythonPackage/itkVersion.py
+      - cp .drone/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
+      - cp .drone/manylinux-build-common.sh ITKPythonPackage/scripts/internal
+      - cp .drone/manylinux-build-module-wheels.sh ITKPythonPackage/scripts/internal
 
   - name: build-wheel
     image: docker:dind
@@ -50,7 +53,7 @@ steps:
     commands:
       - sleep 5 # give docker enough time to start
       - apk add --no-cache bash # Install various utils
-      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS"
+      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS -c -DBOOST_ROOT:PATH=/work/tools/boost"
 
   - name: publish-package
     image: plugins/pypi
@@ -150,5 +153,3 @@ get:
 ---
 kind: signature
 hmac: 6a33969517b76222cebd92acf5993fce5af4ec80d70281cf7412bd6331c4c218
-
-...

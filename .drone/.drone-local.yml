@@ -3,6 +3,8 @@ kind: pipeline
 type: docker
 name: hdf5container-build-wheel
 
+# drone exec --trusted --timeout 10h --secret-file secrets.txt  .drone/.drone-local.yml
+
 steps:
   - name: download-archive
     image: minio/mc
@@ -32,9 +34,12 @@ steps:
       - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
       - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
       - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-$PYTHON_VERSIONS*
-      - ln -s ITKPythonPackage/oneTBB-prefix 
+      - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/CMakeLists.txt ITKPythonPackage
       - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION+$WHEEL_VERSION'" ITKPythonPackage/itkVersion.py
+      - cp .drone/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
+      - cp .drone/manylinux-build-common.sh ITKPythonPackage/scripts/internal
+      - cp .drone/manylinux-build-module-wheels.sh ITKPythonPackage/scripts/internal
 
   - name: build-wheel
     image: docker:dind
@@ -46,7 +51,7 @@ steps:
     commands:
       - sleep 5 # give docker enough time to start
       - apk add --no-cache bash # Install various utils
-      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS"
+      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS -c -DBOOST_ROOT:PATH=/work/tools/boost"
 
   - name: publish-package
     image: plugins/pypi
@@ -58,7 +63,12 @@ steps:
         from_secret: PYPI_PASSWORD
       distributions:
         - bdist_wheel
-      skip_build: true      
+      skip_build: true
+
+  - name: cleanup
+    image: alpine
+    commands:
+      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage *.zst
 
 services:
   - name: docker
