@@ -83,7 +83,7 @@ fi
 
 # Set up library paths in container so that shared libraries can be added to wheels
 sudo ldconfig
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/work/oneTBB-prefix/lib64:/usr/lib:/usr/lib64:/usr/local/lib:/usr/local/lib64
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/work/oneTBB-prefix/lib:/usr/lib:/usr/lib64:/usr/local/lib:/usr/local/lib64
 
 # Compile wheels re-using standalone project and archive cache
 for PYBIN in "${PYBINARIES[@]}"; do
@@ -94,12 +94,13 @@ for PYBIN in "${PYBINARIES[@]}"; do
     echo "Python3_EXECUTABLE:${Python3_EXECUTABLE}"
     echo "Python3_INCLUDE_DIR:${Python3_INCLUDE_DIR}"
 
-    if [[ -e /work/requirements-dev.txt ]]; then
-      ${PYBIN}/pip install --upgrade -r /work/requirements-dev.txt
+    if [[ -e /ITKPythonPackage/requirements.txt ]]; then
+      # Do forced reinstallation of packages in requirements.txt
+      ${PYBIN}/python -m pip install --force-reinstall -r /ITKPythonPackage/requirements.txt
     fi
+
     version=$(basename $(dirname ${PYBIN}))
-    # Remove "m" -- not present in Python 3.8 and later
-    version=${version:0:9}
+
     itk_build_dir=/work/$(basename /ITKPythonPackage/ITK-${version}-manylinux2014_${ARCH})
     ln -fs /ITKPythonPackage/ITK-${version}-manylinux2014_${ARCH} $itk_build_dir
     if [[ ! -d ${itk_build_dir} ]]; then
