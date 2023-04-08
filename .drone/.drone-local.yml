@@ -15,7 +15,7 @@ steps:
       MINIO_PASSWORD:
         from_secret: MINIO_PASSWORD
       MINIO_BUCKET: beamline-mct
-      ITK_PACKAGE_VERSION: 5.3rc04
+      ITK_PACKAGE_VERSION: 5.3.0
       ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
       - mc alias set minio $MINIO_HOST $MINIO_USERNAME $MINIO_PASSWORD
@@ -25,8 +25,8 @@ steps:
     image: alpine
     environment:
       ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
-      ITK_PACKAGE_VERSION: 5.3rc04
-      PYTHON_VERSIONS: cp39
+      ITK_PACKAGE_VERSION: 5.3.0
+      PYTHON_VERSIONS: cp310
       WHEEL_VERSION: .mct
       ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
@@ -36,6 +36,7 @@ steps:
       - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-$PYTHON_VERSIONS*
       - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/CMakeLists.txt ITKPythonPackage
+      - cp .drone/requirements.txt ITKPythonPackage
       - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION+$WHEEL_VERSION'" ITKPythonPackage/itkVersion.py
       - cp .drone/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
       - cp .drone/manylinux-build-common.sh ITKPythonPackage/scripts/internal
@@ -44,7 +45,7 @@ steps:
   - name: build-wheel
     image: docker:dind
     environment:
-      PYTHON_VERSIONS: cp39
+      PYTHON_VERSIONS: cp310
     volumes:
       - name: dockersock
         path: /var/run
