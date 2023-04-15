@@ -1,0 +1,3 @@
+[submodule ".drone/ITKPythonPackage"]
+	path = .drone/ITKPythonPackage
+	url = ssh://git@bitbucket.synchrotron.org.au:7999/mct/itkdronepythonpackage.git
