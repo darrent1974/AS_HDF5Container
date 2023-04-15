@@ -45,7 +45,7 @@ steps:
       - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
       - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
-      - .drone/set_itk_version.sh $ITK_PACKAGE_VERSION
+      - .drone/ITKPythonPackage/set_itk_version.sh $ITK_PACKAGE_VERSION
       - cp .drone/ITKPythonPackage/requirements.txt ITKPythonPackage
       - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION'" ITKPythonPackage/itkVersion.py
       - cp .drone/ITKPythonPackage/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
@@ -163,6 +163,6 @@ get:
   name: pypiPassword
 ---
 kind: signature
-hmac: 55c1cbe88de017b9329cafb246baea1947b3c3a1167ba076776d249af5523675
+hmac: d0778129c561c1967eb40fa534f23c18145eba0b8f4c22d1290b898bad0661a3
 
 ...
