@@ -31,21 +31,22 @@ steps:
     environment:
       ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
       ITK_PACKAGE_VERSION: 5.3.0
-      PYTHON_VERSIONS: cp310
+      PYTHON_VERSIONS: cp310 cp311
       WHEEL_VERSION: .mct
       ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
       - apk add --no-cache git sed zstd tar
       - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
       - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
-      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-$PYTHON_VERSIONS*
+      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
       - ln -s ITKPythonPackage/oneTBB-prefix
-      - cp .drone/CMakeLists.txt ITKPythonPackage
-      - cp .drone/requirements.txt ITKPythonPackage
-      - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION+$WHEEL_VERSION'" ITKPythonPackage/itkVersion.py
-      - cp .drone/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
-      - cp .drone/manylinux-build-common.sh ITKPythonPackage/scripts/internal
-      - cp .drone/manylinux-build-module-wheels.sh ITKPythonPackage/scripts/internal
+      - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
+      - .drone/set_itk_version.sh $ITK_PACKAGE_VERSION      
+      - cp .drone/ITKPythonPackage/requirements.txt ITKPythonPackage
+      - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION'" ITKPythonPackage/itkVersion.py
+      - cp .drone/ITKPythonPackage/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
+      - cp .drone/ITKPythonPackage/manylinux-build-common.sh ITKPythonPackage/scripts/internal
+      - cp .drone/ITKPythonPackage/manylinux-build-module-wheels.sh ITKPythonPackage/scripts/internal
 
   - name: build-wheel
     image: docker:dind

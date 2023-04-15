@@ -16,43 +16,48 @@ steps:
         from_secret: MINIO_PASSWORD
       MINIO_BUCKET: beamline-mct
       ITK_PACKAGE_VERSION: 5.3.0
+      MANYLINUX_VERSION: manylinux_2_28_x64
       ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
       - mc alias set minio $MINIO_HOST $MINIO_USERNAME $MINIO_PASSWORD
-      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-linux-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonBuilds-linux.tar.zst
+      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst $ARCHIVE
 
   - name: setup-itkpythonpackage
     image: alpine
     environment:
       ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
       ITK_PACKAGE_VERSION: 5.3.0
-      PYTHON_VERSIONS: cp310
-      WHEEL_VERSION: .mct
+      PYTHON_VERSIONS: cp310 cp311
       ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
       - apk add --no-cache git sed zstd tar
       - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
       - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
-      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-$PYTHON_VERSIONS*
+      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
       - ln -s ITKPythonPackage/oneTBB-prefix
-      - cp .drone/CMakeLists.txt ITKPythonPackage
-      - cp .drone/requirements.txt ITKPythonPackage
-      - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION+$WHEEL_VERSION'" ITKPythonPackage/itkVersion.py
-      - cp .drone/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
-      - cp .drone/manylinux-build-common.sh ITKPythonPackage/scripts/internal
-      - cp .drone/manylinux-build-module-wheels.sh ITKPythonPackage/scripts/internal
+      - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
+      - .drone/set_itk_version.sh $ITK_PACKAGE_VERSION      
+      - cp .drone/ITKPythonPackage/requirements.txt ITKPythonPackage
+      - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION'" ITKPythonPackage/itkVersion.py
+      - cp .drone/ITKPythonPackage/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
+      - cp .drone/ITKPythonPackage/manylinux-build-common.sh ITKPythonPackage/scripts/internal
+      - cp .drone/ITKPythonPackage/manylinux-build-module-wheels.sh ITKPythonPackage/scripts/internal
 
   - name: build-wheel
     image: docker:dind
     environment:
-      PYTHON_VERSIONS: cp310
+      MANYLINUX_VERSION: manylinux_2_28
+      MANYLINUX_ARCH: x64
+      MANYLINUX_TAG: 20230406-484f06a
+      PYTHON_VERSIONS: cp311
+      DRONE_LOGS_DEBUG: true
     volumes:
       - name: dockersock
         path: /var/run
     commands:
       - sleep 5 # give docker enough time to start
       - apk add --no-cache bash # Install various utils
-      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS -c -DBOOST_ROOT:PATH=/work/tools/boost"
+      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh -v$MANYLINUX_VERSION -a$MANYLINUX_ARCH -t$MANYLINUX_TAG -c -DBOOST_ROOT:PATH=/work/tools/boost $PYTHON_VERSIONS"
 
   - name: publish-package
     image: plugins/pypi
