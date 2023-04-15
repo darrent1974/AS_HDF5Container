@@ -49,7 +49,6 @@ steps:
       MANYLINUX_ARCH: x64
       MANYLINUX_TAG: 20230406-484f06a
       PYTHON_VERSIONS: cp310 cp311
-      DRONE_LOGS_DEBUG: true
     volumes:
       - name: dockersock
         path: /var/run

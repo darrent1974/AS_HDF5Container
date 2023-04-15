@@ -55,6 +55,9 @@ steps:
   - name: build-wheel
     image: docker:dind
     environment:
+      MANYLINUX_VERSION: manylinux_2_28
+      MANYLINUX_ARCH: x64
+      MANYLINUX_TAG: 20230406-484f06a
       PYTHON_VERSIONS: cp310 cp311
     volumes:
       - name: dockersock
@@ -62,7 +65,7 @@ steps:
     commands:
       - sleep 5 # give docker enough time to start
       - apk add --no-cache bash # Install various utils
-      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh $PYTHON_VERSIONS -c -DBOOST_ROOT:PATH=/work/tools/boost"
+      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh -v$MANYLINUX_VERSION -a$MANYLINUX_ARCH -t$MANYLINUX_TAG -c -DBOOST_ROOT:PATH=/work/tools/boost $PYTHON_VERSIONS"
 
   - name: publish-package
     image: plugins/pypi
@@ -161,6 +164,6 @@ get:
   name: pypiPassword
 ---
 kind: signature
-hmac: e1ba29a8f6c1cf86cd5a2192c385d3a22a3a6985840ee8233df65020e04457a5
+hmac: 43356957c1ca4ab1ce49d7cd27b8361106c4dcbf839c0408f38d4ffa4d2eb0a9
 
 ...
