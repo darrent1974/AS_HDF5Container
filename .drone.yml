@@ -27,10 +27,11 @@ steps:
         from_secret: MINIO_PASSWORD
       MINIO_BUCKET: beamline-mct
       ITK_PACKAGE_VERSION: 5.3.0
+      MANYLINUX_VERSION: manylinux_2_28_x64
       ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
       - mc alias set minio $MINIO_HOST $MINIO_USERNAME $MINIO_PASSWORD
-      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-linux-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonBuilds-linux.tar.zst
+      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst $ARCHIVE
 
   - name: setup-itkpythonpackage
     image: alpine
@@ -164,6 +165,6 @@ get:
   name: pypiPassword
 ---
 kind: signature
-hmac: 43356957c1ca4ab1ce49d7cd27b8361106c4dcbf839c0408f38d4ffa4d2eb0a9
+hmac: db7ef0125105ca012ccf095849313c1d1bfb567feb81828e6e5700897c21bbd5
 
 ...
