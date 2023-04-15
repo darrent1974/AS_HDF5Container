@@ -27,7 +27,6 @@ steps:
     environment:
       ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
       ITK_PACKAGE_VERSION: 5.3.0
-      PYTHON_VERSIONS: cp310 cp311
       ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
       - apk add --no-cache git sed zstd tar
@@ -49,7 +48,7 @@ steps:
       MANYLINUX_VERSION: manylinux_2_28
       MANYLINUX_ARCH: x64
       MANYLINUX_TAG: 20230406-484f06a
-      PYTHON_VERSIONS: cp311
+      PYTHON_VERSIONS: cp310 cp311
       DRONE_LOGS_DEBUG: true
     volumes:
       - name: dockersock
@@ -61,6 +60,8 @@ steps:
 
   - name: publish-package
     image: plugins/pypi
+    when:
+      status: [success]    
     settings:
       repository: https://pypi.asci.synchrotron.org.au/mct/dev/
       username:
