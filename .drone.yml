@@ -66,8 +66,6 @@ steps:
 
   - name: publish-package
     image: plugins/pypi
-    when:
-      status: [success]
     settings:
       repository: https://pypi.asci.synchrotron.org.au/mct/dev/
       username:
@@ -163,6 +161,6 @@ get:
   name: pypiPassword
 ---
 kind: signature
-hmac: d0778129c561c1967eb40fa534f23c18145eba0b8f4c22d1290b898bad0661a3
+hmac: e1ba29a8f6c1cf86cd5a2192c385d3a22a3a6985840ee8233df65020e04457a5
 
 ...
