@@ -11,6 +11,12 @@ trigger:
     - refs/heads/main
 
 steps:
+  - name: submodules
+    image: alpine/git
+    commands:
+      - git config --global --add safe.directory /drone/src
+      - git submodule update --init --recursive
+      
   - name: download-archive
     image: minio/mc
     environment:
@@ -157,6 +163,6 @@ get:
   name: pypiPassword
 ---
 kind: signature
-hmac: e09b6a86b47fafd6ee4670140a319445735f2097bffe0cc5dea213b21471b837
+hmac: 139367ed43b10fa2f84cb8d01844737a45b0c2e6d1e08b5754ebec53ae4229d3
 
 ...
