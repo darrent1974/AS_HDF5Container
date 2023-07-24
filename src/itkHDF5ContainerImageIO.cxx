@@ -103,7 +103,7 @@ const std::string Origin("Origin");
 const std::string Directions("Directions");
 const std::string Spacing("Spacing");
 const std::string Dimensions("Dimension");
-const std::string MetaDataName("ITKMetaData");
+const std::string MetaDataName("MCT");
 
 template <typename TScalar>
 H5::PredType
@@ -112,11 +112,11 @@ GetType()
   itkGenericExceptionMacro(<< "Type not handled "
                            << "in HDF5 File: " << typeid(TScalar).name());
 }
-#define GetH5TypeSpecialize(CXXType, H5Type)                                                                           \
-  template <>                                                                                                          \
-  H5::PredType GetType<CXXType>()                                                                                      \
-  {                                                                                                                    \
-    return H5Type;                                                                                                     \
+#define GetH5TypeSpecialize(CXXType, H5Type) \
+  template <>                                \
+  H5::PredType GetType<CXXType>()            \
+  {                                          \
+    return H5Type;                           \
   }
 
 GetH5TypeSpecialize(float, H5::PredType::NATIVE_FLOAT) GetH5TypeSpecialize(double, H5::PredType::NATIVE_DOUBLE)
@@ -300,7 +300,8 @@ HDF5ContainerImageIO ::WriteScalar(const std::string & path, const bool & value)
   hsize_t       numScalars(1);
   H5::DataSpace scalarSpace(1, &numScalars);
   H5::PredType  scalarType = H5::PredType::NATIVE_HBOOL;
-  H5::DataSet   scalarSet = this->m_H5File->createDataSet(path, scalarType, scalarSpace);
+
+  H5::DataSet scalarSet = this->m_H5File->createDataSet(path, scalarType, scalarSpace);
   //
   // HDF5 can't distinguish
   // between bool and int datasets
@@ -480,22 +481,22 @@ HDF5ContainerImageIO::WriteString(const std::string & path, const char * s)
 }
 
 void
-HDF5ContainerImageIO::WriteStringAttr(H5::DataSet & ds, const std::string & name, const std::string & value)
+HDF5ContainerImageIO::WriteStringAttr(H5::H5Object & ob, const std::string & name, const std::string & value)
 {
   H5::DataSpace strSpace(H5S_SCALAR);
   H5::StrType   strType(H5::PredType::C_S1, H5T_VARIABLE);
 
-  H5::Attribute attrString(ds.createAttribute(name, strType, strSpace));
+  H5::Attribute attrString(ob.createAttribute(name, strType, strSpace));
   // const H5::StrType strwritebuf(value);
   attrString.write(strType, value);
   attrString.close();
 }
 
 void
-HDF5ContainerImageIO::WriteStringAttr(H5::DataSet & ds, const std::string & name, const char * s)
+HDF5ContainerImageIO::WriteStringAttr(H5::H5Object & ob, const std::string & name, const char * s)
 {
   std::string _s(s);
-  WriteStringAttr(ds, name, _s);
+  WriteStringAttr(ob, name, _s);
 }
 
 std::string
@@ -525,14 +526,12 @@ HDF5ContainerImageIO::WriteVector(const std::string & path, const std::vector<TS
 
 template <typename TScalar>
 void
-HDF5ContainerImageIO::WriteVectorDataSetAttrib(H5::DataSet &                ds,
-                                               const std::string &          name,
-                                               const std::vector<TScalar> & vec)
+HDF5ContainerImageIO::WriteVectorAttrib(H5::H5Object & ob, const std::string & name, const std::vector<TScalar> & vec)
 {
   hsize_t       dim(vec.size());
   H5::DataSpace vecSpace(1, &dim);
   H5::PredType  vecType = GetType<TScalar>();
-  H5::Attribute vecAttrib = ds.createAttribute(name, vecType, vecSpace);
+  H5::Attribute vecAttrib = ob.createAttribute(name, vecType, vecSpace);
   vecAttrib.write(vecType, vec.data());
   vecAttrib.close();
 }
@@ -561,11 +560,11 @@ HDF5ContainerImageIO::ReadVector(const std::string & DataSetName)
 
 template <typename TScalar>
 std::vector<TScalar>
-HDF5ContainerImageIO::ReadVectorDataSetAttrib(const H5::DataSet & ds, const std::string & name)
+HDF5ContainerImageIO::ReadVectorAttrib(const H5::H5Object & ob, const std::string & name)
 {
   std::vector<TScalar> vec;
   hsize_t              dim[1];
-  H5::Attribute        vecAttrib = ds.openAttribute(name);
+  H5::Attribute        vecAttrib = ob.openAttribute(name);
   H5::DataSpace        Space = vecAttrib.getSpace();
 
   if (Space.getSimpleExtentNdims() != 1)
@@ -605,9 +604,9 @@ HDF5ContainerImageIO::WriteDirections(const std::string & path, const std::vecto
 }
 
 void
-HDF5ContainerImageIO::WriteDirectionsDataSetAttributes(H5::DataSet                              ds,
-                                                       const std::string &                      name,
-                                                       const std::vector<std::vector<double>> & dir)
+HDF5ContainerImageIO::WriteDirectionsAttributes(H5::H5Object &                           ob,
+                                                const std::string &                      name,
+                                                const std::vector<std::vector<double>> & dir)
 {
   hsize_t dim[2];
   dim[1] = dir.size();
@@ -624,7 +623,7 @@ HDF5ContainerImageIO::WriteDirectionsDataSetAttributes(H5::DataSet              
   }
 
   H5::DataSpace dirSpace(2, dim);
-  H5::Attribute dirAttrib = ds.createAttribute(name, H5::PredType::NATIVE_DOUBLE, dirSpace);
+  H5::Attribute dirAttrib = ob.createAttribute(name, H5::PredType::NATIVE_DOUBLE, dirSpace);
   dirAttrib.write(H5::PredType::NATIVE_DOUBLE, buf.get());
   dirAttrib.close();
 }
@@ -681,10 +680,10 @@ HDF5ContainerImageIO ::ReadDirections(const std::string & path)
 }
 
 std::vector<std::vector<double>>
-HDF5ContainerImageIO ::ReadDirectionsDataSetAttributes(const H5::DataSet & ds, const std::string & name)
+HDF5ContainerImageIO ::ReadDirectionsAttributes(const H5::H5Object & ob, const std::string & name)
 {
   std::vector<std::vector<double>> rval;
-  H5::Attribute                    dirAttrib = ds.openAttribute(name);
+  H5::Attribute                    dirAttrib = ob.openAttribute(name);
   H5::DataSpace                    dirSpace = dirAttrib.getSpace();
   hsize_t                          dim[2];
   if (dirSpace.getSimpleExtentNdims() != 2)
@@ -1152,11 +1151,13 @@ HDF5ContainerImageIO ::WriteMetaDataSetAttrib(H5::DataSet &        ds,
   return true;
 }
 
+#ifdef ITK_ARRAY_META_ARRAY
 template <typename TType>
 bool
 HDF5ContainerImageIO ::WriteMetaArray(const std::string & name, MetaDataObjectBase * metaObjBase)
 {
   using MetaDataArrayObject = MetaDataObject<Array<TType>>;
+
   auto * metaObj = dynamic_cast<MetaDataArrayObject *>(metaObjBase);
   if (metaObj == nullptr)
   {
@@ -1171,6 +1172,23 @@ HDF5ContainerImageIO ::WriteMetaArray(const std::string & name, MetaDataObjectBa
   this->WriteVector(name, vecVal);
   return true;
 }
+#else
+template <typename TType>
+bool
+HDF5ContainerImageIO ::WriteMetaArray(const std::string & name, MetaDataObjectBase * metaObjBase)
+{
+  using MetaDataArrayObject = MetaDataObject<std::vector<TType>>;
+
+  auto * metaObj(dynamic_cast<MetaDataArrayObject *>(metaObjBase));
+  if (metaObj == nullptr)
+  {
+    return false;
+  }
+  std::vector<TType> vecVal(metaObj->GetMetaDataObjectValue());
+  this->WriteVector(name, vecVal);
+  return true;
+}
+#endif
 
 void
 HDF5ContainerImageIO::ResetH5File(const H5::FileAccPropList fapl)
@@ -1306,10 +1324,10 @@ void
 HDF5ContainerImageIO::WriteDataSetAttributes(H5::DataSet ds)
 {
   // Write ITK specific dataset attributes
-  this->WriteVectorDataSetAttrib(ds, Origin, this->m_Origin);
-  this->WriteVectorDataSetAttrib(ds, Spacing, this->m_Spacing);
-  this->WriteVectorDataSetAttrib(ds, Dimensions, this->m_Dimensions);
-  this->WriteDirectionsDataSetAttributes(ds, Directions, this->m_Direction);
+  this->WriteVectorAttrib(ds, Origin, this->m_Origin);
+  this->WriteVectorAttrib(ds, Spacing, this->m_Spacing);
+  this->WriteVectorAttrib(ds, Dimensions, this->m_Dimensions);
+  this->WriteDirectionsAttributes(ds, Directions, this->m_Direction);
 }
 
 void
@@ -1334,7 +1352,7 @@ HDF5ContainerImageIO::ReadDataSetAttributes(const H5::DataSet & ds)
   {
     // Image dimensions are specified explicitely
     this->UseInferredDimensionsOff();
-    this->m_Dimensions = this->ReadVectorDataSetAttrib<ImageIOBase::SizeValueType>(ds, Dimensions);
+    this->m_Dimensions = this->ReadVectorAttrib<ImageIOBase::SizeValueType>(ds, Dimensions);
 
     // Dimensionality is defined by the vector size
     nDims = this->m_Dimensions.size();
@@ -1376,13 +1394,13 @@ HDF5ContainerImageIO::ReadDataSetAttributes(const H5::DataSet & ds)
   }
 
   if (ds.attrExists(Directions))
-    this->m_Direction = this->ReadDirectionsDataSetAttributes(ds, Directions);
+    this->m_Direction = this->ReadDirectionsAttributes(ds, Directions);
 
   if (ds.attrExists(Origin))
-    this->m_Origin = this->ReadVectorDataSetAttrib<double>(ds, Origin);
+    this->m_Origin = this->ReadVectorAttrib<double>(ds, Origin);
 
   if (ds.attrExists(Spacing))
-    this->m_Spacing = this->ReadVectorDataSetAttrib<double>(ds, Spacing);
+    this->m_Spacing = this->ReadVectorAttrib<double>(ds, Spacing);
 
   if (this->GetUseDataSetOffset())
   {
@@ -1419,100 +1437,153 @@ HDF5ContainerImageIO::ReadDataSetAttributes(const H5::DataSet & ds)
 }
 
 void
-HDF5ContainerImageIO::WriteImageMetaData(H5::Group & group, const MetaDataDictionary & metaDict)
+HDF5ContainerImageIO::WriteImageMetaData(const std::string          strBasePath,
+                                         H5::Group &                group,
+                                         const MetaDataDictionary & metaDict,
+                                         const std::string          strMetaDataGroupName)
 {
-  // Create the image dataset in the group
-  H5::Group groupMetaData = group.createGroup(MetaDataName);
-
   // Create the full path string of the MetaData group
-  std::string objBaseName(this->GetPath());
-  objBaseName += ("/" + MetaDataName + "/");
+  std::string strObjectPath(strBasePath);
+  itkDebugMacro(<< "strBasePath: " << strBasePath);
+
+  // Adjust path
+  if (!strMetaDataGroupName.empty())
+  {
+    strObjectPath.append(strMetaDataGroupName + "/");
+  }
+
+  itkDebugMacro(<< "strObjectPath: " << strObjectPath << ", strMetaDataGroupName: " << strMetaDataGroupName);
 
   auto it = metaDict.Begin(), end = metaDict.End();
 
   // Loop through ITK MetaData
   for (; it != end; it++)
   {
-    MetaDataObjectBase * metaObj = it->second.GetPointer();
-    std::string          objName(objBaseName + it->first);
+    MetaDataObjectBase * metaObj(it->second.GetPointer());
+    std::string          strObjectName(it->first);
+    std::string          strDatasetPath(strObjectPath + strObjectName);
 
-    itkDebugMacro(<< "Creating MetaData dataset: " << objName);
+    // Check first character of strObjectName, if an "@" symbol
+    // then this will become an attribute (only strings)
+    if (strObjectName[0] == MCT_METADATA_ATTR_CHAR)
+    {
+      std::string strAttributeName(strObjectName);
+
+      // Remove "@"
+      strAttributeName.erase(0, 1);
+
+      auto * metaObjString(dynamic_cast<MetaDataObject<std::string> *>(metaObj));
+      if (metaObjString == nullptr)
+        itkExceptionMacro(<< "Unsupported metadata attribute type");
+
+      // Extract the item as a string
+      std::string str(metaObjString->GetMetaDataObjectValue());
+
+      itkDebugMacro(<< "Creating string attribute: " << strAttributeName << " = " << str << ", at: " << strObjectPath);
+
+      // Write the string as an attribute
+      this->WriteStringAttr(group, strAttributeName, str);
+
+      continue;
+    }
+
+    //
+    // Metadata dictionary, recursively create groups
+    auto * dictObj(dynamic_cast<MetaDataObject<MetaDataDictionary> *>(metaObj));
+    if (dictObj != nullptr)
+    {
+      itkDebugMacro(<< "Creating child metadata: " << strObjectName << ", at: " << strDatasetPath);
+
+      // Create a group named for the child metadata dictionary
+      H5::Group groupMetaData(group.createGroup(strObjectName));
+
+      // Extract child metadata dictionary
+      MetaDataDictionary metaDictChild(dictObj->GetMetaDataObjectValue());
+
+      // Recursively call WriteImageMetaData on the extracted
+      // child metadata dictionary
+      this->WriteImageMetaData(strObjectPath, groupMetaData, metaDictChild, strObjectName);
+
+      continue;
+    }
+
+    itkDebugMacro(<< "Creating MetaData dataset: " << strObjectName << ", at: " << strDatasetPath);
 
     // scalars
-    if (this->WriteMeta<bool>(objName, metaObj))
+    if (this->WriteMeta<bool>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<char>(objName, metaObj))
+    if (this->WriteMeta<char>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<unsigned char>(objName, metaObj))
+    if (this->WriteMeta<unsigned char>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<short>(objName, metaObj))
+    if (this->WriteMeta<short>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<unsigned short>(objName, metaObj))
+    if (this->WriteMeta<unsigned short>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<int>(objName, metaObj))
+    if (this->WriteMeta<int>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<unsigned int>(objName, metaObj))
+    if (this->WriteMeta<unsigned int>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<long>(objName, metaObj))
+    if (this->WriteMeta<long>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<unsigned long>(objName, metaObj))
+    if (this->WriteMeta<unsigned long>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<long long int>(objName, metaObj))
+    if (this->WriteMeta<long long int>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<unsigned long long int>(objName, metaObj))
+    if (this->WriteMeta<unsigned long long int>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<float>(objName, metaObj))
+    if (this->WriteMeta<float>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMeta<double>(objName, metaObj))
+    if (this->WriteMeta<double>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<char>(objName, metaObj))
+    if (this->WriteMetaArray<char>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<unsigned char>(objName, metaObj))
+    if (this->WriteMetaArray<unsigned char>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<short>(objName, metaObj))
+    if (this->WriteMetaArray<short>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<unsigned short>(objName, metaObj))
+    if (this->WriteMetaArray<unsigned short>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<int>(objName, metaObj))
+    if (this->WriteMetaArray<int>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<unsigned int>(objName, metaObj))
+    if (this->WriteMetaArray<unsigned int>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<long>(objName, metaObj))
+    if (this->WriteMetaArray<long>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<unsigned long>(objName, metaObj))
+    if (this->WriteMetaArray<unsigned long>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<float>(objName, metaObj))
+    if (this->WriteMetaArray<float>(strDatasetPath, metaObj))
       continue;
 
-    if (this->WriteMetaArray<double>(objName, metaObj))
+    if (this->WriteMetaArray<double>(strDatasetPath, metaObj))
       continue;
 
     //
     // C String Arrays
     {
-      auto * cstringObj = dynamic_cast<MetaDataObject<char *> *>(metaObj);
-      auto * constCstringObj = dynamic_cast<MetaDataObject<const char *> *>(metaObj);
+      auto * cstringObj(dynamic_cast<MetaDataObject<char *> *>(metaObj));
+      auto * constCstringObj(dynamic_cast<MetaDataObject<const char *> *>(metaObj));
       if (cstringObj != nullptr || constCstringObj != nullptr)
       {
         const char * val;
@@ -1524,18 +1595,18 @@ HDF5ContainerImageIO::WriteImageMetaData(H5::Group & group, const MetaDataDictio
         {
           val = constCstringObj->GetMetaDataObjectValue();
         }
-        this->WriteString(objName, val);
+        this->WriteString(strDatasetPath, val);
         continue;
       }
     }
     //
     // std::string
     {
-      auto * stdStringObj = dynamic_cast<MetaDataObject<std::string> *>(metaObj);
+      auto * stdStringObj(dynamic_cast<MetaDataObject<std::string> *>(metaObj));
       if (stdStringObj != nullptr)
       {
-        std::string val = stdStringObj->GetMetaDataObjectValue();
-        this->WriteString(objName, val);
+        std::string val(stdStringObj->GetMetaDataObjectValue());
+        this->WriteString(strDatasetPath, val);
         continue;
       }
     }
@@ -1557,7 +1628,7 @@ HDF5ContainerImageIO::WriteImageInformation()
     this->CloseH5File();
 
     H5::FileAccPropList fapl;
-#if (H5_VERS_MAJOR > 1) || (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 10) ||                                             \
+#if (H5_VERS_MAJOR > 1) || (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 10) || \
   (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 10) && (H5_VERS_RELEASE >= 2)
     // File format which is backwards compatible with HDF5 version 1.8
     // Only HDF5 v1.10.2 has both setLibverBounds method and H5F_LIBVER_V18
@@ -1572,6 +1643,10 @@ HDF5ContainerImageIO::WriteImageInformation()
     this->ResetH5File(fapl);
 
     H5::Group group(this->GetGroup());
+
+    // Write a timestamp attribute on the group
+    // auto strTimeStamp(this->GetTimestamp());
+    this->WriteStringAttr(group, MCT_METADATA_TIMESTAMP_ATTR, this->GetCurrentTimeString());
 
     // First, check if the dataset already exists
     if (!this->GetOverwrite() && group.nameExists(this->GetDataSetName()))
@@ -1625,9 +1700,13 @@ HDF5ContainerImageIO::WriteImageInformation()
     // Write ITK image specific attributes to the dataset
     this->WriteDataSetAttributes(ds);
 
-    // Write ITK MetaData to the dataset in subgroup
+    // Write image MetaData to the dataset in subgroup
     if (this->GetUseMetaData())
-      this->WriteImageMetaData(group, this->GetMetaDataDictionary());
+    {
+      std::string strBasePath(this->GetPath());
+      strBasePath.append("/");
+      this->WriteImageMetaData(strBasePath, group, this->GetMetaDataDictionary());
+    }
   }
   // catch failure caused by the H5File operations
   catch (H5::FileIException & error)
@@ -1750,5 +1829,18 @@ HDF5ContainerImageIO ::DataSetExists()
     return false;
   }
 }
+
+std::string
+HDF5ContainerImageIO::GetCurrentTimeString()
+{
+  std::time_t result(std::time(nullptr));
+  std::string str(std::asctime(std::localtime(&result)));
+
+  // Remove trailing newline
+  str.pop_back();
+
+  return str;
+}
+
 
 } // end namespace itk
