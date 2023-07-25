@@ -834,6 +834,7 @@ HDF5ContainerImageIO ::ReadImageInformation()
     // Necessary to clear dict if ImageIO object is re-used
     metaDict.Clear();
 
+#ifdef METADATA_READING
     if (this->GetUseMetaData())
     {
       // Check if MetaData group exists, throw exception if not
@@ -843,7 +844,9 @@ HDF5ContainerImageIO ::ReadImageInformation()
       // Read and populate MetaData dict
       this->ReadImageMetaData(metaDict);
     }
+#endif
   }
+
   // catch failure caused by the H5File operations
   catch (H5::AttributeIException & error)
   {
@@ -875,7 +878,7 @@ HDF5ContainerImageIO ::ReadImageMetaData(MetaDataDictionary & metaDict)
 {
   // Construct MetaData path
   std::string MetaDataGroupName(this->GetPath());
-  MetaDataGroupName += ("/" + MetaDataName + "/");
+  // MetaDataGroupName += ("/" + MetaDataName + "/");
 
   itkDebugMacro(<< "MetaDataGroupName: " << MetaDataGroupName);
 
