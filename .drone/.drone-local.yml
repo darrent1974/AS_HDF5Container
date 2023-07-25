@@ -15,24 +15,23 @@ steps:
       MINIO_PASSWORD:
         from_secret: MINIO_PASSWORD
       MINIO_BUCKET: beamline-mct
-      ITK_PACKAGE_VERSION: 5.3.0
-      MANYLINUX_VERSION: manylinux_2_28_x64
-      ARCHIVE: ITKPythonBuilds-linux.tar.zst
     commands:
+      - rm -rf ITK_build_resources
       - mc alias set minio $MINIO_HOST $MINIO_USERNAME $MINIO_PASSWORD
-      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst $ARCHIVE
+      - mc cp --recursive minio/$MINIO_BUCKET/ITK_build_resources/ ITK_build_resources/
 
   - name: setup-itkpythonpackage
     image: alpine
     environment:
       ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
       ITK_PACKAGE_VERSION: 5.3.0
-      ARCHIVE: ITKPythonBuilds-linux.tar.zst
+      MANYLINUX_VERSION: manylinux_2_28_x64
     commands:
       - apk add --no-cache git sed zstd tar
       - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
       - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
-      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
+      - tar --use-compress-program=unzstd -xf ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
+      - rm ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst       
       - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
       - .drone/ITKPythonPackage/set_itk_version.sh $ITK_PACKAGE_VERSION      
