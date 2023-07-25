@@ -31,10 +31,10 @@ steps:
       - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
       - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
       - tar --use-compress-program=unzstd -xf ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
-      - rm ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst       
+      - rm ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst
       - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
-      - .drone/ITKPythonPackage/set_itk_version.sh $ITK_PACKAGE_VERSION      
+      - .drone/ITKPythonPackage/set_itk_version.sh $ITK_PACKAGE_VERSION
       - cp .drone/ITKPythonPackage/requirements.txt ITKPythonPackage
       - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION'" ITKPythonPackage/itkVersion.py
       - cp .drone/ITKPythonPackage/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
@@ -57,7 +57,7 @@ steps:
       - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh -v$MANYLINUX_VERSION -a$MANYLINUX_ARCH -t$MANYLINUX_TAG -c -DBOOST_ROOT:PATH=/work/tools/boost $PYTHON_VERSIONS"
 
   - name: publish-package
-    image: plugins/pypi  
+    image: plugins/pypi
     settings:
       repository: https://pypi.asci.synchrotron.org.au/mct/dev/
       username:
@@ -71,7 +71,7 @@ steps:
   - name: cleanup
     image: alpine
     commands:
-      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage *.zst
+      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage ITK_build_resources
 
 services:
   - name: docker
