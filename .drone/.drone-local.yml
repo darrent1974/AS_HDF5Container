@@ -47,7 +47,7 @@ steps:
       MANYLINUX_VERSION: manylinux_2_28
       MANYLINUX_ARCH: x64
       MANYLINUX_TAG: 20230406-484f06a
-      PYTHON_VERSIONS: cp310 cp311
+      PYTHON_VERSIONS: cp311
     volumes:
       - name: dockersock
         path: /var/run
