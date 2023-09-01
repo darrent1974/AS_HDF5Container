@@ -1,3 +1,6 @@
 [submodule ".drone/ITKPythonPackage"]
 	path = .drone/ITKPythonPackage
 	url = https://bitbucket.synchrotron.org.au/scm/mct/itkdronepythonpackage.git
+[submodule "ITKPythonPackage"]
+	branch = main
+	update = rebase
