@@ -1736,6 +1736,68 @@ HDF5ContainerImageIO::WriteImageInformation()
   this->m_ImageInformationWritten = true;
 }
 
+void
+HDF5ContainerImageIO::WriteImageMetaDataOnly(const MetaDataDictionary & metaDict)
+{
+  try
+  {
+    this->CloseH5File();
+
+    H5::FileAccPropList fapl;
+#if (H5_VERS_MAJOR > 1) || (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 10) || \
+  (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 10) && (H5_VERS_RELEASE >= 2)
+    // File format which is backwards compatible with HDF5 version 1.8
+    // Only HDF5 v1.10.2 has both setLibverBounds method and H5F_LIBVER_V18
+    // constant
+    fapl.setLibverBounds(H5F_LIBVER_V18, H5F_LIBVER_V18);
+#elif (H5_VERS_MAJOR == 1) && (H5_VERS_MINOR == 10) && (H5_VERS_RELEASE < 2)
+#  error The selected version of HDF5 library does not support setting backwards compatibility at run-time.\
+  Please use a different version of HDF5, e.g. the one bundled with ITK (by setting ITK_USE_SYSTEM_HDF5 to OFF).
+#endif
+
+    if (!std::filesystem::exists(this->GetFileName()))
+    {
+      itkExceptionMacro(<< this->GetFileName() << " does not exist, can't write metadata");
+    }
+    else
+    {
+      // The file already exists, open in read/write mode
+      this->m_H5File.reset(new H5::H5File(this->GetFileName(), H5F_ACC_RDWR, H5::FileCreatPropList::DEFAULT, fapl));
+    }
+
+    H5::Group group(this->GetGroup());
+
+    // Write a timestamp attribute on the group
+    // auto strTimeStamp(this->GetTimestamp());
+    // this->WriteStringAttr(group, MCT_METADATA_TIMESTAMP_ATTR, this->GetCurrentTimeString());
+
+    // Write image MetaData to the dataset in subgroup
+    std::string strBasePath(this->GetPath());
+    strBasePath.append("/");
+    this->WriteImageMetaData(strBasePath, group, metaDict);
+  }
+  // catch failure caused by the H5File operations
+  catch (H5::FileIException & error)
+  {
+    itkExceptionMacro(<< error.getCDetailMsg());
+  }
+  // catch failure caused by the DataSet operations
+  catch (H5::DataSetIException & error)
+  {
+    itkExceptionMacro(<< error.getCDetailMsg());
+  }
+  // catch failure caused by the DataSpace operations
+  catch (H5::DataSpaceIException & error)
+  {
+    itkExceptionMacro(<< error.getCDetailMsg());
+  }
+  // catch failure caused by the DataSpace operations
+  catch (H5::DataTypeIException & error)
+  {
+    itkExceptionMacro(<< error.getCDetailMsg());
+  }
+}
+
 /**
  * Write the image Information before writing data
  */

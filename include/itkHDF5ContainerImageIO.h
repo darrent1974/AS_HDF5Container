@@ -174,6 +174,9 @@ public:
   std::string
   GetCurrentTimeString();
 
+  virtual void
+  WriteImageMetaDataOnly(const MetaDataDictionary & metaDict);
+
 protected:
   HDF5ContainerImageIO();
   ~HDF5ContainerImageIO() override;
