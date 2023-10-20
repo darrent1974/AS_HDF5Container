@@ -1775,6 +1775,8 @@ HDF5ContainerImageIO::WriteImageMetaDataOnly(const MetaDataDictionary & metaDict
     std::string strBasePath(this->GetPath());
     strBasePath.append("/");
     this->WriteImageMetaData(strBasePath, group, metaDict);
+
+    this->CloseH5File();    
   }
   // catch failure caused by the H5File operations
   catch (H5::FileIException & error)
