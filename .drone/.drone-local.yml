@@ -24,7 +24,7 @@ steps:
     image: alpine
     environment:
       ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
-      ITK_PACKAGE_VERSION: 5.3.0
+      ITK_PACKAGE_VERSION: 5.4.0
       MANYLINUX_VERSION: manylinux_2_28_x64
     commands:
       - apk add --no-cache git sed zstd tar
@@ -46,7 +46,7 @@ steps:
     environment:
       MANYLINUX_VERSION: manylinux_2_28
       MANYLINUX_ARCH: x64
-      MANYLINUX_TAG: 20230406-484f06a
+      MANYLINUX_TAG: 20240729-13d3b71
       PYTHON_VERSIONS: cp311
     volumes:
       - name: dockersock
