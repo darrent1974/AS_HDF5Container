@@ -6,22 +6,22 @@ from glob import glob
 try:
     from skbuild import setup
 except ImportError:
-    print('scikit-build is required to build from source.', file=sys.stderr)
-    print('Please run:', file=sys.stderr)
-    print('', file=sys.stderr)
-    print('  python -m pip install scikit-build')
+    print("scikit-build is required to build from source.", file=sys.stderr)
+    print("Please run:", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("  python -m pip install scikit-build")
     sys.exit(1)
 
 setup(
-    name='itk-hdf5container',
-    version='0.6.1',
-    author='Darren Thompson',
-    author_email='darren.thompson@csiro.au',
-    packages=['itk'],
-    package_dir={'itk': 'itk'},
-    download_url=r'https://bitbucket.synchrotron.org.au/scm/mct/itkiohdf5container.git',
-    description=r'HDF5Container',
-    long_description='ITK is an open-source, cross-platform library that provides developers with an extensive suite of software tools for image analysis. Developed through extreme programming methodologies, ITK employs leading-edge algorithms for registering and segmenting multidimensional scientific images.',
+    name="itk-hdf5container",
+    version="0.7.0",
+    author="Darren Thompson",
+    author_email="darren.thompson@csiro.au",
+    packages=["itk"],
+    package_dir={"itk": "itk"},
+    download_url=r"https://bitbucket.synchrotron.org.au/scm/mct/itkiohdf5container.git",
+    description=r"HDF5Container",
+    long_description="ITK is an open-source, cross-platform library that provides developers with an extensive suite of software tools for image analysis. Developed through extreme programming methodologies, ITK employs leading-edge algorithms for registering and segmenting multidimensional scientific images.",
     classifiers=[
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
@@ -39,12 +39,10 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX",
         "Operating System :: Unix",
-        "Operating System :: MacOS"
-        ],
-    license='Apache',
-    keywords='ITK InsightToolkit',
-    url=r'https://itk.org/',
-    install_requires=[
-        r'itk>=5.3.0'
-    ]
-    )
+        "Operating System :: MacOS",
+    ],
+    license="Apache",
+    keywords="ITK InsightToolkit",
+    url=r"https://itk.org/",
+    install_requires=[r"itk>=5.4.0"],
+)
