@@ -35,7 +35,7 @@ steps:
       - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
       - .drone/ITKPythonPackage/set_itk_version.sh $ITK_PACKAGE_VERSION
-      - cp .drone/ITKPythonPackage/requirements.txt ITKPythonPackage
+      - cp .drone/ITKPythonPackage/requirements-classic.txt ITKPythonPackage/requirements.txt
       - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION'" ITKPythonPackage/itkVersion.py
       - cp .drone/ITKPythonPackage/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
       - cp .drone/ITKPythonPackage/manylinux-build-common.sh ITKPythonPackage/scripts/internal
