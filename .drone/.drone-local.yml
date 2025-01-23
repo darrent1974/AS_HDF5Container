@@ -28,11 +28,10 @@ steps:
       MANYLINUX_VERSION: manylinux_2_28_x64
     commands:
       - apk add --no-cache git sed zstd tar
-      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
+      - rm -rf dist ITK-* _skbuild *.egg-info tools itk ITKPythonPackage
       - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
-      - tar --use-compress-program=unzstd -xf ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
+      - tar --use-compress-program=unzstd -xf ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst ITKPythonPackage/scripts/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
       - rm ITK_build_resources/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst
-      - ln -s ITKPythonPackage/oneTBB-prefix
       - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
       - .drone/ITKPythonPackage/set_itk_version.sh $ITK_PACKAGE_VERSION
       - cp .drone/ITKPythonPackage/requirements-classic.txt ITKPythonPackage/requirements.txt
@@ -47,7 +46,7 @@ steps:
       MANYLINUX_VERSION: manylinux_2_28
       MANYLINUX_ARCH: x64
       MANYLINUX_TAG: 20240729-13d3b71
-      PYTHON_VERSIONS: cp311
+      PYTHON_VERSIONS: cp312
     volumes:
       - name: dockersock
         path: /var/run
@@ -71,7 +70,7 @@ steps:
   - name: cleanup
     image: alpine
     commands:
-      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage ITK_build_resources
+      - rm -rf dist ITK-* _skbuild *.egg-info tools itk ITKPythonPackage ITK_build_resources
 
 services:
   - name: docker
