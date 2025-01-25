@@ -1,170 +1,21 @@
 ---
 kind: pipeline
 type: kubernetes
-name: hdf5container-build-wheel
-
-# Ensure build is signed with the following command after modifications
-# drone sign MCT/itkunitconversion --save
+name: commit-main
 
 trigger:
   ref:
     - refs/heads/main
 
 steps:
-  - name: submodules
-    image: alpine/git
-    commands:
-      - git config --global --add safe.directory /drone/src
-      - git submodule update --init --recursive
-
-  - name: download-archive
-    image: minio/mc
-    environment:
-      MINIO_HOST: https://s3-api.asci.synchrotron.org.au
-      MINIO_USERNAME:
-        from_secret: MINIO_USERNAME
-      MINIO_PASSWORD:
-        from_secret: MINIO_PASSWORD
-      MINIO_BUCKET: beamline-mct
-      ITK_PACKAGE_VERSION: 5.3.0
-      MANYLINUX_VERSION: manylinux_2_28_x64
-      ARCHIVE: ITKPythonBuilds-linux.tar.zst
-    commands:
-      - mc alias set minio $MINIO_HOST $MINIO_USERNAME $MINIO_PASSWORD
-      - mc cp minio/$MINIO_BUCKET/ITKPythonBuilds-$MANYLINUX_VERSION-v$ITK_PACKAGE_VERSION.tar.zst $ARCHIVE
-
-  - name: setup-itkpythonpackage
-    image: alpine
-    environment:
-      ITK_PYTHON_PACKAGE_REPO: https://github.com/InsightSoftwareConsortium/ITKPythonPackage.git
-      ITK_PACKAGE_VERSION: 5.3.0
-      ARCHIVE: ITKPythonBuilds-linux.tar.zst
-    commands:
-      - apk add --no-cache git sed zstd tar
-      - rm -rf dist ITK-* _skbuild *.egg-info tools oneTBB-prefix itk ITKPythonPackage
-      - git clone --depth 1 --branch v$ITK_PACKAGE_VERSION $ITK_PYTHON_PACKAGE_REPO ITKPythonPackage
-      - tar --use-compress-program=unzstd -xf $ARCHIVE ITKPythonPackage/scripts/ ITKPythonPackage/oneTBB-prefix/ ITKPythonPackage/ITK-source/ --wildcards ITKPythonPackage/ITK-*
-      - ln -s ITKPythonPackage/oneTBB-prefix
-      - cp .drone/ITKPythonPackage/CMakeLists.txt ITKPythonPackage
-      - .drone/ITKPythonPackage/set_itk_version.sh $ITK_PACKAGE_VERSION
-      - cp .drone/ITKPythonPackage/requirements.txt ITKPythonPackage
-      - sed -i "/^VERSION = /c\VERSION = '$ITK_PACKAGE_VERSION'" ITKPythonPackage/itkVersion.py
-      - cp .drone/ITKPythonPackage/dockcross-manylinux-build-module-wheels.sh ITKPythonPackage/scripts
-      - cp .drone/ITKPythonPackage/manylinux-build-common.sh ITKPythonPackage/scripts/internal
-      - cp .drone/ITKPythonPackage/manylinux-build-module-wheels.sh ITKPythonPackage/scripts/internal
-
-  - name: build-wheel
-    image: docker:dind
-    environment:
-      MANYLINUX_VERSION: manylinux_2_28
-      MANYLINUX_ARCH: x64
-      MANYLINUX_TAG: 20230406-484f06a
-      PYTHON_VERSIONS: cp310 cp311
-    volumes:
-      - name: dockersock
-        path: /var/run
-    commands:
-      - sleep 5 # give docker enough time to start
-      - apk add --no-cache bash # Install various utils
-      - /bin/bash -c "ITKPythonPackage/scripts/dockcross-manylinux-build-module-wheels.sh -v$MANYLINUX_VERSION -a$MANYLINUX_ARCH -t$MANYLINUX_TAG -c -DBOOST_ROOT:PATH=/work/tools/boost $PYTHON_VERSIONS"
-
-  - name: publish-package
-    image: plugins/pypi
+  - name: trigger-downstream
+    image: plugins/downstream
     settings:
-      repository: https://pypi.asci.synchrotron.org.au/mct/dev/
-      username:
-        from_secret: pypiUsername
-      password:
-        from_secret: pypiPassword
-      distributions:
-        - bdist_wheel
-      skip_build: true
-
-  - name: notify-package-upload
-    image: alpine
-    when:
-      status: [success, failure]
-    environment:
-      ROCKET_CI_CHANNEL:
-        from_secret: rocketCIChannel
-      PYPI_SERVER:
-        from_secret: pypiServer
-    commands:
-      - export FORMAT_MSG=$(printf _"$DRONE_COMMIT_MESSAGE"_ | sed ':a;N;$!ba;s/\n/ \\\n /g')
-      - |
-        head -c -1 << EOF > .template.json
-        {
-          "channel": "$ROCKET_CI_CHANNEL",
-          "text": "Build ${DRONE_BUILD_NUMBER} of **${DRONE_REPO,,} (${DRONE_BRANCH})** is a [{{build.status}}](${DRONE_BUILD_LINK}) {{#success build.status}} :tada: {{else}} :exclamation: {{/success}}",
-          "attachments": [
-            {
-              "author_name": "${DRONE_COMMIT_AUTHOR_NAME}",
-              "fields": [
-              {
-                "short": false,
-                "title": "",
-                "value": "$FORMAT_MSG"
-              },
-              {
-                "short": false,
-                "title": "",
-                "value": "{{#success build.status}} Uploaded to the [pypi]($PYPI_SERVER/mct/dev/${DRONE_REPO_NAME,,}/latest) repository. {{else}} Please check the commit and/or infrastructure. {{/success}}"
-              }
-            ],
-            "color": "{{#success build.status}} #30b886 {{else}} #a30100 {{/success}}"
-            }
-          ]
-        }
-        EOF
-
-  - name: chat-notify
-    image: plugins/webhook
-    when:
-      status: [success, failure]
-    settings:
-      urls:
-        from_secret: rocketCIWebhook
-      content_type: application/json
-      template: file:///drone/src/.template.json
-
-services:
-  - name: docker
-    image: docker:dind
-    privileged: true
-    volumes:
-      - name: dockersock
-        path: /var/run
-
-volumes:
-  - name: dockersock
-    temp: {}
-
----
-kind: secret
-name: rocketCIWebhook
-get:
-  path: asci-cicd-prod
-  name: rocketCIWebhook
----
-kind: secret
-name: rocketCIChannel
-get:
-  path: asci-cicd-prod
-  name: imgCIChannel
----
-kind: secret
-name: pypiUsername
-get:
-  path: asci-cicd-prod
-  name: pypiUsername
----
-kind: secret
-name: pypiPassword
-get:
-  path: asci-cicd-prod
-  name: pypiPassword
----
-kind: signature
-hmac: db7ef0125105ca012ccf095849313c1d1bfb567feb81828e6e5700897c21bbd5
-
-...
+      server:
+        from_secret: droneServer
+      token:
+        from_secret: droneToken
+      fork: true
+      wait: true
+      repositories:
+        - MCT/mct-hpc-jupyter@main
