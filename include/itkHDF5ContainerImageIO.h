@@ -70,7 +70,7 @@ namespace itk
 class HDF5Container_EXPORT HDF5ContainerImageIO : public StreamingImageIOBase
 {
 public:
-  ITK_DISALLOW_COPY_AND_ASSIGN(HDF5ContainerImageIO);
+  ITK_DISALLOW_COPY_AND_MOVE(HDF5ContainerImageIO);
 
   /** Standard class type aliases. */
   using Self = HDF5ContainerImageIO;

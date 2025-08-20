@@ -26,7 +26,7 @@
 
 namespace itk
 {
-  /**
+/**
  *\class DemoImageSource
  *
  * \brief Streamable process that will generate image regions from the write requests
@@ -39,53 +39,54 @@ namespace itk
  * (and set pixels values) on the fly, based on the informations
  * received from the writer requests.
  */
-  template <class TOutputImage>
-  class DemoImageSource : public GenerateImageSource<TOutputImage>
+template <class TOutputImage>
+class DemoImageSource : public GenerateImageSource<TOutputImage>
+{
+public:
+  ITK_DISALLOW_COPY_AND_MOVE(DemoImageSource);
+
+  /** Standard class type aliases. */
+  using Self = DemoImageSource;
+  using Superclass = DemoImageSource<TOutputImage>;
+  using Pointer = SmartPointer<Self>;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(DemoImageSource, GenerateImageSource);
+
+  /** Set the value to fill the image. */
+  itkSetMacro(Value, typename TOutputImage::PixelType);
+
+protected:
+  DemoImageSource() { m_Value = NumericTraits<typename TOutputImage::PixelType>::ZeroValue(); }
+  ~DemoImageSource() override = default;
+
+  /** Does the real work. */
+  void
+  GenerateData() override
   {
-  public:
-    ITK_DISALLOW_COPY_AND_ASSIGN(DemoImageSource);
-
-    /** Standard class type aliases. */
-    using Self = DemoImageSource;
-    using Superclass = DemoImageSource<TOutputImage>;
-    using Pointer = SmartPointer<Self>;
-
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self);
-
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(DemoImageSource, GenerateImageSource);
-
-    /** Set the value to fill the image. */
-    itkSetMacro(Value, typename TOutputImage::PixelType);
-
-  protected:
-    DemoImageSource() { m_Value = NumericTraits<typename TOutputImage::PixelType>::ZeroValue(); }
-    ~DemoImageSource() override = default;
-
-    /** Does the real work. */
-    void
-    GenerateData() override
+    TOutputImage * out = this->GetOutput();
+    out->SetBufferedRegion(out->GetRequestedRegion());
+    out->Allocate();
+    itk::ImageRegionIteratorWithIndex<TOutputImage> it(out, out->GetRequestedRegion());
+    for (it.GoToBegin(); !it.IsAtEnd(); ++it)
     {
-      TOutputImage *out = this->GetOutput();
-      out->SetBufferedRegion(out->GetRequestedRegion());
-      out->Allocate();
-      itk::ImageRegionIteratorWithIndex<TOutputImage> it(out, out->GetRequestedRegion());
-      for (it.GoToBegin(); !it.IsAtEnd(); ++it)
-      {
-        typename TOutputImage::IndexType idx = it.GetIndex();
-        it.Set(idx[2] * 100 + idx[1] * 10 + idx[0]);
-      }
-    };
-
-  private:
-    typename TOutputImage::PixelType m_Value;
+      typename TOutputImage::IndexType idx = it.GetIndex();
+      it.Set(idx[2] * 100 + idx[1] * 10 + idx[0]);
+    }
   };
+
+private:
+  typename TOutputImage::PixelType m_Value;
+};
 
 } // namespace itk
 
 template <typename TPixel>
-int HDF5ContainerReadWriteTest2(const char *fileName)
+int
+HDF5ContainerReadWriteTest2(const char * fileName)
 {
   // Define image type.
   using ImageType = typename itk::Image<TPixel, 3>;
@@ -112,11 +113,9 @@ int HDF5ContainerReadWriteTest2(const char *fileName)
   {
     writer->Write();
   }
-  catch (const itk::ExceptionObject &err)
+  catch (const itk::ExceptionObject & err)
   {
-    std::cout << "itkHDF5ImageIOTest" << std::endl
-              << "Exception Object caught: " << std::endl
-              << err << std::endl;
+    std::cout << "itkHDF5ImageIOTest" << std::endl << "Exception Object caught: " << std::endl << err << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -129,7 +128,7 @@ int HDF5ContainerReadWriteTest2(const char *fileName)
   expectedRegion.SetSize(0, 5);
   expectedRegion.SetSize(1, 5);
   expectedRegion.SetSize(2, 1);
-  typename MonitorFilterType::RegionVectorType writerRegionVector = writerMonitor->GetUpdatedBufferedRegions();
+  typename MonitorFilterType::RegionVectorType   writerRegionVector = writerMonitor->GetUpdatedBufferedRegions();
   typename ImageType::RegionType::IndexValueType iRegion;
   for (iRegion = 0; iRegion < 5; iRegion++)
   {
@@ -161,11 +160,9 @@ int HDF5ContainerReadWriteTest2(const char *fileName)
   {
     streamer->Update();
   }
-  catch (const itk::ExceptionObject &err)
+  catch (const itk::ExceptionObject & err)
   {
-    std::cout << "itkHDF5ImageIOTest" << std::endl
-              << "Exception Object caught: " << std::endl
-              << err << std::endl;
+    std::cout << "itkHDF5ImageIOTest" << std::endl << "Exception Object caught: " << std::endl << err << std::endl;
     return EXIT_FAILURE;
   }
   image = streamer->GetOutput();
@@ -190,8 +187,8 @@ int HDF5ContainerReadWriteTest2(const char *fileName)
 
   // Check image pixel values.
   itk::ImageRegionIterator<ImageType> it(image, image->GetLargestPossibleRegion());
-  typename ImageType::IndexType idx;
-  TPixel origValue;
+  typename ImageType::IndexType       idx;
+  TPixel                              origValue;
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
     idx = it.GetIndex();
@@ -231,7 +228,8 @@ int HDF5ContainerReadWriteTest2(const char *fileName)
   return EXIT_SUCCESS;
 }
 
-int itkHDF5ContainerImageIOStreamingReadWriteTest(int ac, char *av[])
+int
+itkHDF5ContainerImageIOStreamingReadWriteTest(int ac, char * av[])
 {
   std::string prefix("");
   if (ac > 1)

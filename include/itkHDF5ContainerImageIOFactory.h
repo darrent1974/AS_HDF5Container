@@ -24,52 +24,52 @@
 
 namespace itk
 {
-  /**
+/**
  *\class HDF5ContainerImageIOFactory
  * \author Darren Thompson
  * \brief Create instances of HDF5ContainerImageIO objects using an object
  * factory.
  * \ingroup CSIROCT
  */
-  class HDF5Container_EXPORT HDF5ContainerImageIOFactory : public ObjectFactoryBase
+class HDF5Container_EXPORT HDF5ContainerImageIOFactory : public ObjectFactoryBase
+{
+public:
+  ITK_DISALLOW_COPY_AND_MOVE(HDF5ContainerImageIOFactory);
+
+  /** Standard class type aliases. */
+  using Self = HDF5ContainerImageIOFactory;
+  using Superclass = ObjectFactoryBase;
+  using Pointer = SmartPointer<Self>;
+  using ConstPointer = SmartPointer<const Self>;
+
+  /** Class methods used to interface with the registered factories. */
+  const char *
+  GetITKSourceVersion() const override;
+
+  const char *
+  GetDescription() const override;
+
+  /** Method for class instantiation. */
+  itkFactorylessNewMacro(Self);
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(HDF5ContainerImageIOFactory, ObjectFactoryBase);
+
+  /** Register one factory of this type  */
+  static void
+  RegisterOneFactory()
   {
-  public:
-    ITK_DISALLOW_COPY_AND_ASSIGN(HDF5ContainerImageIOFactory);
+    HDF5ContainerImageIOFactory::Pointer metaFactory = HDF5ContainerImageIOFactory::New();
 
-    /** Standard class type aliases. */
-    using Self = HDF5ContainerImageIOFactory;
-    using Superclass = ObjectFactoryBase;
-    using Pointer = SmartPointer<Self>;
-    using ConstPointer = SmartPointer<const Self>;
+    ObjectFactoryBase::RegisterFactoryInternal(metaFactory);
+  }
 
-    /** Class methods used to interface with the registered factories. */
-    const char *
-    GetITKSourceVersion() const override;
-
-    const char *
-    GetDescription() const override;
-
-    /** Method for class instantiation. */
-    itkFactorylessNewMacro(Self);
-
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(HDF5ContainerImageIOFactory, ObjectFactoryBase);
-
-    /** Register one factory of this type  */
-    static void
-    RegisterOneFactory()
-    {
-      HDF5ContainerImageIOFactory::Pointer metaFactory = HDF5ContainerImageIOFactory::New();
-
-      ObjectFactoryBase::RegisterFactoryInternal(metaFactory);
-    }
-
-  protected:
-    HDF5ContainerImageIOFactory();
-    ~HDF5ContainerImageIOFactory() override;
-    void
-    PrintSelf(std::ostream &os, Indent indent) const override;
-  };
+protected:
+  HDF5ContainerImageIOFactory();
+  ~HDF5ContainerImageIOFactory() override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
+};
 } // end namespace itk
 
 #endif
