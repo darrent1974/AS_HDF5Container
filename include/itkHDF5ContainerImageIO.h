@@ -81,7 +81,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(HDF5ContainerImageIO, StreamingImageIOBase);
+  itkOverrideGetNameOfClassMacro(HDF5ContainerImageIO);
 
   /** Set/Get the name of the HDF5 path data will be read/written */
   itkSetStringMacro(Path);
